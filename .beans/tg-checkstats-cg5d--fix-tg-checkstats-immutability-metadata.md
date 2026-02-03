@@ -1,10 +1,11 @@
 ---
 # tg-checkstats-cg5d
 title: Fix tg-checkstats immutability + metadata
-status: in-progress
+status: completed
 type: bug
+priority: normal
 created_at: 2026-02-03T23:30:55Z
-updated_at: 2026-02-03T23:30:55Z
+updated_at: 2026-02-03T23:35:33Z
 ---
 
 Fix issues found during code review:
@@ -23,4 +24,4 @@ Fix issues found during code review:
 - [x] Implement NDJSON fallback parsing
 - [x] Add README.md or adjust pyproject readme
 - [x] Run full test suite
-- [ ] Commit changes including bean file
+- [x] Commit changes including bean file
