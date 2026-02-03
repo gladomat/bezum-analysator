@@ -11,6 +11,7 @@ import platform
 from typing import Any, Dict, Iterable, List, Tuple
 
 import ijson
+from ijson.common import IncompleteJSONError, JSONError
 
 from tg_checkstats import __version__
 from tg_checkstats.aggregate import (
@@ -45,14 +46,21 @@ def analyze_export(
     input_path: Path,
     out_dir: Path,
     config: AnalyzeConfig | None = None,
+    tg_checkstats_argv: List[str] | None = None,
+    telegram_download_chat_argv: List[str] | None = None,
+    export_retry_count: int | None = None,
+    export_retry_delay_seconds: int | None = None,
 ) -> Dict[str, Any]:
     """Analyze a telegram-download-chat JSON export and write outputs."""
     cfg = config or AnalyzeConfig()
+
+    started_utc = datetime.now(timezone.utc)
 
     counts: Dict[str, int] = {
         "messages_scanned": 0,
         "messages_included": 0,
         "messages_excluded_service": 0,
+        "messages_excluded_no_message_id": 0,
         "messages_excluded_no_timestamp": 0,
         "messages_excluded_invalid_timestamp": 0,
         "messages_excluded_duplicate_id": 0,
@@ -91,7 +99,7 @@ def analyze_export(
 
         message_id = extract_message_id(message)
         if message_id is None:
-            counts["messages_excluded_no_timestamp"] += 1
+            counts["messages_excluded_no_message_id"] += 1
             continue
         if message_id in seen_ids:
             counts["messages_excluded_duplicate_id"] += 1
@@ -272,7 +280,20 @@ def analyze_export(
         ],
     )
 
-    metadata = build_metadata(input_path, cfg, counts, dataset_start, dataset_end)
+    completed_utc = datetime.now(timezone.utc)
+    metadata = build_metadata(
+        input_path,
+        cfg,
+        counts,
+        dataset_start,
+        dataset_end,
+        started_utc=started_utc,
+        completed_utc=completed_utc,
+        tg_checkstats_argv=tg_checkstats_argv,
+        telegram_download_chat_argv=telegram_download_chat_argv,
+        export_retry_count=export_retry_count,
+        export_retry_delay_seconds=export_retry_delay_seconds,
+    )
     write_json(out_dir / "run_metadata.json", metadata)
 
     return metadata
@@ -287,8 +308,23 @@ def iter_messages(path: Path) -> Iterable[Dict[str, Any]]:
         with path.open("rb") as handle:
             yield from ijson.items(handle, "item")
     else:
-        with path.open("rb") as handle:
-            yield from ijson.items(handle, "messages.item")
+        try:
+            with path.open("rb") as handle:
+                yield from ijson.items(handle, "messages.item")
+        except (IncompleteJSONError, JSONError):
+            yield from iter_messages_ndjson(path)
+
+
+def iter_messages_ndjson(path: Path) -> Iterable[Dict[str, Any]]:
+    """Yield message objects from an NDJSON (newline-delimited JSON) export."""
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            obj = json.loads(stripped)
+            if isinstance(obj, dict):
+                yield obj
 
 
 def first_non_whitespace(handle) -> bytes:
@@ -564,12 +600,31 @@ def sha256_hex(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def sha256_file_hex(path: Path, chunk_size: int = 1024 * 1024) -> str:
+    """Return SHA-256 hex digest of a file by streaming bytes."""
+    hasher = hashlib.sha256()
+    with path.open("rb") as handle:
+        while True:
+            chunk = handle.read(chunk_size)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
 def build_metadata(
     input_path: Path,
     config: AnalyzeConfig,
     counts: Dict[str, int],
     dataset_start: date,
     dataset_end: date,
+    *,
+    started_utc: datetime,
+    completed_utc: datetime,
+    tg_checkstats_argv: List[str] | None = None,
+    telegram_download_chat_argv: List[str] | None = None,
+    export_retry_count: int | None = None,
+    export_retry_delay_seconds: int | None = None,
 ) -> Dict[str, Any]:
     """Build run metadata payload."""
     return {
@@ -582,18 +637,18 @@ def build_metadata(
             "platform": platform.platform(),
         },
         "timestamps": {
-            "analyze_started_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "analyze_completed_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "analyze_started_utc": started_utc.isoformat().replace("+00:00", "Z"),
+            "analyze_completed_utc": completed_utc.isoformat().replace("+00:00", "Z"),
         },
         "commands": {
-            "tg_checkstats_argv": None,
-            "telegram_download_chat_argv": None,
+            "tg_checkstats_argv": tg_checkstats_argv,
+            "telegram_download_chat_argv": telegram_download_chat_argv,
         },
         "input": {
             "chat_identifier_raw": None,
             "chat_identifier_normalized": None,
             "raw_export_path": str(input_path),
-            "raw_export_sha256": sha256_hex(input_path.read_text(encoding="utf-8")),
+            "raw_export_sha256": sha256_file_hex(input_path),
         },
         "config": {
             "timezone": "Europe/Berlin",
@@ -603,8 +658,8 @@ def build_metadata(
             "include_service": config.include_service,
             "include_bots": config.include_bots,
             "include_forwards": config.include_forwards,
-            "export_retry_count": 3,
-            "export_retry_delay_seconds": 5,
+            "export_retry_count": export_retry_count,
+            "export_retry_delay_seconds": export_retry_delay_seconds,
             "text_trunc_len": config.text_trunc_len,
         },
         "auth": {

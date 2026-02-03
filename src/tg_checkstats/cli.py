@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import shutil
+import sys
 
 import click
 
@@ -28,7 +29,7 @@ def export(chat: str, out_dir: Path, export_retry_count: int, export_retry_delay
     raw_dir = out_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     output_path = raw_dir / "export.json"
-    if output_path.exists() and force:
+    if output_path.exists():
         raise SystemExit("raw export already exists; choose a new run name or remove raw export")
     run_export(chat, output_path, export_retry_count, export_retry_delay)
 
@@ -61,7 +62,7 @@ def analyze(
         include_forwards=include_forwards,
         text_trunc_len=text_trunc_len,
     )
-    analyze_export(input_path, out_dir, cfg)
+    analyze_export(input_path, out_dir, cfg, tg_checkstats_argv=sys.argv)
 
 
 @app.command()
@@ -92,9 +93,9 @@ def run(
     raw_dir = out_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     output_path = raw_dir / "export.json"
-    if output_path.exists() and force:
+    if output_path.exists():
         raise SystemExit("raw export already exists; choose a new run name or remove raw export")
-    run_export(chat, output_path, export_retry_count, export_retry_delay)
+    export_cmd = run_export(chat, output_path, export_retry_count, export_retry_delay)
     cfg = AnalyzeConfig(
         event_count_policy=event_count_policy,
         include_service=include_service,
@@ -102,23 +103,36 @@ def run(
         include_forwards=include_forwards,
         text_trunc_len=text_trunc_len,
     )
-    analyze_export(output_path, out_dir, cfg)
+    analyze_export(
+        output_path,
+        out_dir,
+        cfg,
+        tg_checkstats_argv=sys.argv,
+        telegram_download_chat_argv=export_cmd,
+        export_retry_count=export_retry_count,
+        export_retry_delay_seconds=export_retry_delay,
+    )
 
 
 def prepare_out_dir(out_dir: Path, force: bool, for_export: bool) -> None:
     """Prepare the run directory according to --force behavior."""
     derived_dir = out_dir / "derived"
     logs_dir = out_dir / "logs"
+    raw_dir = out_dir / "raw"
+
+    if for_export and raw_dir.exists() and any(raw_dir.iterdir()):
+        raise SystemExit("raw export already exists; choose a new run name or remove raw export")
 
     if force:
         if derived_dir.exists():
             shutil.rmtree(derived_dir)
         if logs_dir.exists():
             shutil.rmtree(logs_dir)
-        if for_export:
-            raw_dir = out_dir / "raw"
-            if raw_dir.exists() and any(raw_dir.iterdir()):
-                raise SystemExit("raw export already exists; choose a new run name or remove raw export")
+    else:
+        if derived_dir.exists() and any(derived_dir.iterdir()):
+            raise SystemExit("derived outputs already exist; use --force or choose a new run name")
+        if logs_dir.exists() and any(logs_dir.iterdir()):
+            raise SystemExit("logs already exist; use --force or choose a new run name")
 
     out_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(parents=True, exist_ok=True)
