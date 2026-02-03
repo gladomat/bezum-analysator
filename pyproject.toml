@@ -1,0 +1,13 @@
+[project]
+name = "tg-checkstats"
+version = "0.1.0"
+description = "Telegram k-check seasonality analyzer"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+[project.scripts]
+tg-checkstats = "tg_checkstats.cli:app"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
