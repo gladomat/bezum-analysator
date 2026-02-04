@@ -10,6 +10,7 @@ import click
 
 from tg_checkstats.analyze import AnalyzeConfig, analyze_export
 from tg_checkstats.export import run_export
+from tg_checkstats.web_server import serve_web_ui
 
 
 @click.group()
@@ -112,6 +113,15 @@ def run(
         export_retry_count=export_retry_count,
         export_retry_delay_seconds=export_retry_delay,
     )
+
+
+@app.command()
+@click.option("--run", "run_dir", required=True, type=click.Path(path_type=Path), help="Run directory to serve.")
+@click.option("--host", default="127.0.0.1", show_default=True)
+@click.option("--port", default=8000, type=int, show_default=True)
+def serve(run_dir: Path, host: str, port: int) -> None:
+    """Serve the local Web UI for a run directory."""
+    serve_web_ui(run_dir=run_dir, host=host, port=port)
 
 
 def prepare_out_dir(out_dir: Path, force: bool, for_export: bool) -> None:

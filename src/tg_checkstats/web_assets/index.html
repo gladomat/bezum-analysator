@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tg-checkstats — Seasonality UI</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand__icon">A</div>
+          <div class="brand__text">
+            <div class="brand__title">Analytics</div>
+            <div class="brand__sub">tg-checkstats</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <a class="nav__item" href="/" data-nav="overview">Overview</a>
+          <a class="nav__item" href="/month/" data-nav="month">Month Detail</a>
+          <a class="nav__item" href="/week/" data-nav="week">Week Detail</a>
+        </nav>
+        <div class="sidebar__footer">
+          <div class="hint">
+            <div class="hint__title">Local UI</div>
+            <div class="hint__text">Read-only, uses derived UI artifacts.</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="header">
+          <div class="crumbs" id="crumbs">…</div>
+          <div class="header__right">
+            <div class="pill" id="metaPill">Loading…</div>
+            <div class="toggle">
+              <label class="toggle__label" for="metric">Metric</label>
+              <select id="metric">
+                <option value="check_message_count">Messages</option>
+                <option value="check_event_count">Events</option>
+              </select>
+            </div>
+          </div>
+        </header>
+
+        <div class="content" id="content">
+          <div class="card">
+            <div class="card__title">Loading…</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>
+

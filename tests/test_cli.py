@@ -13,6 +13,7 @@ def test_cli_help_shows_commands(runner, cli):
     assert "export" in result.output
     assert "analyze" in result.output
     assert "run" in result.output
+    assert "serve" in result.output
 
 
 def test_export_refuses_overwrite_existing_raw_export(

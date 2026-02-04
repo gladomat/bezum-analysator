@@ -22,6 +22,7 @@ from tg_checkstats.aggregate import (
 from tg_checkstats.detector import detect_event
 from tg_checkstats.io import write_csv, write_json
 from tg_checkstats.parse import normalize_text, parse_timestamp
+from tg_checkstats.ui_artifacts import write_ui_artifacts
 
 try:  # pragma: no cover - python <3.9 fallback
     from zoneinfo import ZoneInfo
@@ -84,6 +85,7 @@ def analyze_export(
     weekday_counts: Dict[int, Tuple[int, int]] = {}
     hour_counts: Dict[int, Tuple[int, int]] = {}
     weekday_hour_counts: Dict[Tuple[int, int], Tuple[int, int]] = {}
+    day_hour_counts: Dict[Tuple[date, int], Tuple[int, int]] = {}
     week_of_month_counts: Dict[int, Tuple[int, int]] = {}
     month_week_of_month_counts: Dict[Tuple[str, int], Tuple[int, int]] = {}
     month_counts: Dict[str, Tuple[int, int]] = {}
@@ -187,6 +189,7 @@ def analyze_export(
         update_counts(weekday_counts, weekday_idx, event_weight)
         update_counts(hour_counts, timestamp_berlin.hour, event_weight)
         update_counts(weekday_hour_counts, (weekday_idx, timestamp_berlin.hour), event_weight)
+        update_counts(day_hour_counts, (message_date, timestamp_berlin.hour), event_weight)
         update_counts(week_of_month_counts, week_of_month, event_weight)
         update_counts(month_week_of_month_counts, (month_label, week_of_month), event_weight)
         update_counts(month_counts, month_label, event_weight)
@@ -278,6 +281,15 @@ def analyze_export(
             "messages_per_day_in_month",
             "events_per_day_in_month",
         ],
+    )
+
+    write_ui_artifacts(
+        out_dir,
+        dataset_start=dataset_start,
+        dataset_end=dataset_end,
+        daily_rows=daily_rows,
+        month_rows=month_rows,
+        day_hour_counts=day_hour_counts,
     )
 
     completed_utc = datetime.now(timezone.utc)
