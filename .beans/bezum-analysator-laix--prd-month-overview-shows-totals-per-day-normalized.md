@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-laix
 title: 'PRD: month overview shows totals + per-day normalized'
-status: in-progress
+status: completed
 type: task
+priority: normal
 created_at: 2026-02-04T15:38:58Z
-updated_at: 2026-02-04T15:38:58Z
+updated_at: 2026-02-04T15:39:59Z
 ---
 
 Update PRD so Month overview displays both:
@@ -13,5 +14,5 @@ Update PRD so Month overview displays both:
 
 ## Checklist
 - [x] Update PRD Month overview UX + FRs + ACs
-- [ ] Commit PRD + bean file
-- [ ] Mark bean completed
+- [x] Commit PRD + bean file
+- [x] Mark bean completed
