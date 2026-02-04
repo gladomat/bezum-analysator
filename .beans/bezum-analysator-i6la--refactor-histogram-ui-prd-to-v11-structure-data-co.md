@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-i6la
 title: Refactor histogram UI PRD to v1.1 structure + data contract
-status: in-progress
+status: completed
 type: task
+priority: normal
 created_at: 2026-02-04T15:56:15Z
-updated_at: 2026-02-04T15:56:15Z
+updated_at: 2026-02-04T15:58:24Z
 ---
 
 Incorporate hard-nosed critique into the histogram web UI PRD:
@@ -17,5 +18,5 @@ Incorporate hard-nosed critique into the histogram web UI PRD:
 ## Checklist
 - [x] Update PRD to v1.1 structure and decisions
 - [x] Ensure artifact paths align with run layout
-- [ ] Commit PRD + bean file
-- [ ] Mark bean completed
+- [x] Commit PRD + bean file
+- [x] Mark bean completed
