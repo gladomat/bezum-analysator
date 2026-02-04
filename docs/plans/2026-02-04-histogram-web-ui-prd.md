@@ -44,25 +44,32 @@ The interactive UI must not scan `events.csv`. It should use only pre-aggregated
 
 ## 4) Definitions
 
-**Timezone:** Europe/Berlin (all dates and week boundaries computed in Berlin time).
+**Timezone:** taken from `<run_dir>/run_metadata.json` (`config.timezone`, defaulting to `Europe/Berlin`).
 
-**Day boundary:** midnight–midnight Berlin.
+**Day boundary:** midnight–midnight in the run timezone.
 
-**Week key (required):** `week_start_date` = Berlin-local Monday date (YYYY-MM-DD).
+**Week key (required):** `week_start_date` = timezone-local Monday date (YYYY-MM-DD).
 
 **Metric (v1.1):**
 
-- `count`: number of matched messages (one per message).
+- `check_message_count`: number of matched messages (one per matched message).
+- `check_event_count`: weighted count, defined by `run_metadata.json` (`config.event_count_policy`).
 
-Optional (only if the analyzer guarantees it end-to-end):
+**Active metric (UI):**
 
-- `event_count`: weighted count (must be explicitly defined by the analyzer’s `event_count_policy` and present in all UI artifacts).
+- Default: `check_message_count`
+- Optional toggle: show `check_event_count` (only if present end-to-end in the UI artifacts)
 
 ---
 
 ## 5) Required derived artifacts (data contract)
 
 **Canonical location:** `<run_dir>/derived/ui/`
+
+Notes:
+
+- These files are a **UI-specific, chart-ready contract**. The analyzer may still write audit-friendly artifacts under `<run_dir>/derived/` (e.g. `events.csv`, other rollups), but the UI must rely only on `<run_dir>/derived/ui/` plus `<run_dir>/run_metadata.json`.
+- The UI must not compute calendar boundaries itself; calendar columns are part of the contract to avoid subtle DST / ISO week / month-edge bugs.
 
 All schemas below are required for v1.1 UI. Files are read-only.
 
@@ -71,21 +78,25 @@ All schemas below are required for v1.1 UI. Files are read-only.
 Columns:
 
 - `month` (YYYY-MM)
-- `month_total` (int)
+- `month_check_message_count` (int)
+- `month_check_event_count` (int)
 - `days_in_range` (int)
-- `rate_per_day_in_range` (float)
+- `messages_per_day_in_range` (float)
+- `events_per_day_in_range` (float)
 
 Rules:
 
 - `days_in_range` counts only the days of that month present in the dataset date range.
-- `rate_per_day_in_range = month_total / days_in_range`
+- `messages_per_day_in_range = month_check_message_count / days_in_range`
+- `events_per_day_in_range = month_check_event_count / days_in_range`
 
 ### B) `day_counts.csv`
 
 Columns:
 
-- `date` (YYYY-MM-DD)
-- `day_total` (int)
+- `date` (YYYY-MM-DD) — timezone-local date
+- `check_message_count` (int)
+- `check_event_count` (int)
 - `month` (YYYY-MM)
 - `weekday_idx` (0=Mon..6=Sun)
 - `weekday` (Mon..Sun)
@@ -96,17 +107,16 @@ Columns:
 
 Rules:
 
-- Dense vs sparse: either is acceptable, but it must be consistent:
-  - Dense: includes every date in the dataset date range (missing implies zero is not used).
-  - Sparse: includes only dates with non-zero totals (UI fills missing dates with 0 after loading a calendar index).
+- Must be **dense**: includes every date in the dataset date range (missing dates are not allowed).
 
 ### C) `day_hour_counts.csv` (sparse allowed)
 
 Columns:
 
-- `date` (YYYY-MM-DD)
+- `date` (YYYY-MM-DD) — timezone-local date
 - `hour` (0..23)
-- `count` (int)
+- `check_message_count` (int)
+- `check_event_count` (int)
 
 Rules:
 
@@ -119,8 +129,10 @@ Columns:
 - `month` (YYYY-MM)
 - `weekday_idx` (0..6), `weekday` (Mon..Sun)
 - `weekday_occurrences_in_range` (int)
-- `total` (int)
-- `mean_per_weekday_in_range` (float)
+- `check_message_count` (int)
+- `check_event_count` (int)
+- `mean_messages_per_weekday_in_range` (float)
+- `mean_events_per_weekday_in_range` (float)
 
 ### E) `calendar_day_index.csv` (recommended; optional if `day_counts.csv` is dense)
 
@@ -162,8 +174,8 @@ Global UI conventions implied by the Stitch assets:
 
 ### 6.1 Month overview
 
-- Chart A: `month_total` per `month`
-- Chart B: `rate_per_day_in_range` per `month`
+- Chart A: `month_check_message_count` per `month` (default metric)
+- Chart B: `messages_per_day_in_range` per `month`
 - Clicking a month opens Month detail for `month=YYYY-MM`.
 
 Stitch alignment (Overview page):
@@ -182,7 +194,7 @@ Stitch alignment (Overview page):
 
 - Rows are `week_start_date` for weeks that overlap the selected month.
 - Columns are Mon..Sun.
-- Cell value = `day_total` for that date.
+- Cell value = `check_message_count` for that date (default metric; can toggle to `check_event_count`).
 - Dates outside the selected month are visually de-emphasized and excluded from month-level aggregates.
 
 **Weekday means (required):**
@@ -206,9 +218,9 @@ Stitch alignment (Month detail / seasonality view):
 - Route key: `/week/<week_start_date>` (YYYY-MM-DD).
 - Show 7 panels (Mon..Sun). For each day:
   - Histogram X-axis: hour (0–23)
-  - Histogram Y-axis: `count`
+  - Histogram Y-axis: `check_message_count` (default metric; can toggle to `check_event_count`)
   - Missing hours are rendered as 0.
-  - Title shows date + weekday + `day_total`.
+  - Title shows date + weekday + day total for active metric.
 
 Stitch alignment (Week detail / hourly analysis):
 
@@ -226,6 +238,7 @@ If required UI artifacts are missing for the selected run directory, show an exp
 Behavior:
 
 - List required filenames and whether each is present:
+  - `run_metadata.json`
   - `derived/ui/month_counts.csv`
   - `derived/ui/day_counts.csv`
   - `derived/ui/day_hour_counts.csv`
@@ -240,7 +253,7 @@ Behavior:
 - `GET /api/run` → run metadata + artifact presence + dataset date range
 - `GET /api/months` → rows from `month_counts.csv`
 - `GET /api/month/<YYYY-MM>` → `{ month, weeks: [week_start_date...], grid: day cells, weekday_stats }`
-- `GET /api/week/<YYYY-MM-DD>` → `{ week_start_date, days: [{date, weekday, day_total, hours[24]}] }`
+- `GET /api/week/<YYYY-MM-DD>` → `{ week_start_date, days: [{date, weekday, check_message_count, check_event_count, hours: [{hour, check_message_count, check_event_count} x24]}] }`
 
 Error handling:
 
@@ -260,8 +273,8 @@ Error handling:
 ## 9) Acceptance criteria (invariant-based)
 
 - AC1: Month overview renders all months with correct totals and rates.
-- AC2: For any month, sum of `day_total` for in-month days equals `month_total`.
-- AC3: For any date, sum of its 24 hourly bins equals `day_total`.
+- AC2: For any month, sum of day counts for in-month days equals the month total (for both metrics, if both are exposed).
+- AC3: For any date, sum of its 24 hourly bins equals the day total (for both metrics, if both are exposed).
 - AC4: Week grid uses `week_start_date` routing; weeks crossing month boundaries behave predictably.
 - AC5: Week detail always shows 7 panels and 24 bins per panel (zero-filled).
 
