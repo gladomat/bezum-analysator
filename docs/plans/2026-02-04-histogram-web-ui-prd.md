@@ -145,11 +145,36 @@ Optional:
 
 ## 6) UI pages & behaviors
 
+### 6.0 UI baseline (stitch references)
+
+Use the provided Stitch mockups and HTML as the visual and layout baseline:
+
+- Overview: `docs/stitch/seasonality_overview_dashboard/screen.png` and `docs/stitch/seasonality_overview_dashboard/code.html`
+- Month detail: `docs/stitch/month_detail_seasonality_view/screen.png` and `docs/stitch/month_detail_seasonality_view/code.html`
+- Week detail: `docs/stitch/week_detail_hourly_analysis/screen.png` and `docs/stitch/week_detail_hourly_analysis/code.html`
+- Error (missing artifacts): `docs/stitch/data_missing_error_state/screen.png` and `docs/stitch/data_missing_error_state/code.html`
+
+Global UI conventions implied by the Stitch assets:
+
+- App shell: left sidebar navigation + top header with breadcrumbs and run controls.
+- Typography: Inter (via Google Fonts) + Material Symbols icon set.
+- Design tokens (from Tailwind config in Stitch HTML): `primary=#197fe6`, light background `#f6f7f8`, dark background `#111921`, rounded cards (`rounded-xl`), subtle borders + shadows.
+
 ### 6.1 Month overview
 
 - Chart A: `month_total` per `month`
 - Chart B: `rate_per_day_in_range` per `month`
 - Clicking a month opens Month detail for `month=YYYY-MM`.
+
+Stitch alignment (Overview page):
+
+- Include the top header elements shown in the mockup:
+  - breadcrumb `run_id / overview`
+  - timezone badge (Europe/Berlin)
+  - “data loaded” status indicator
+  - “Change run” control
+- The bar chart styling should follow the “Monthly Activity Totals” card treatment.
+- Secondary “Daily Check Rate” panel can be driven by weekday means (run-level or selected range); if omitted in v1.1, keep space for it in layout.
 
 ### 6.2 Month detail
 
@@ -164,6 +189,18 @@ Optional:
 
 - Render means from `month_weekday_stats.csv` for the selected month.
 
+Stitch alignment (Month detail / seasonality view):
+
+- Add a month picker control (prev/next month + label) and optional “Export” action (export can be out-of-scope for v1.1; keep button as disabled or hidden).
+- Week grid should match the “Activity Heatmap” look:
+  - columns labeled Mon..Sun
+  - week labels at left (display ISO week number for readability; routing still uses `week_start_date`)
+  - day tiles show day-of-month + count, and encode intensity by background shade
+- Provide an “Insights” side panel layout (can start minimal in v1.1):
+  - Total for month and average-per-day-in-range
+  - Weekday Average bar chart (driven by `month_weekday_stats.csv`)
+  - Optional: weekly volume mini-chart and “top busiest days” list (future / v1.2)
+
 ### 6.3 Week detail
 
 - Route key: `/week/<week_start_date>` (YYYY-MM-DD).
@@ -172,6 +209,29 @@ Optional:
   - Histogram Y-axis: `count`
   - Missing hours are rendered as 0.
   - Title shows date + weekday + `day_total`.
+
+Stitch alignment (Week detail / hourly analysis):
+
+- Use the card grid layout from the mockup: 7 day cards with titles, date subtitles, and compact histograms.
+- Provide a “Normalize (scale to %)” toggle as a v1.1 nice-to-have:
+  - Off: bars show absolute counts (default)
+  - On: each day’s histogram is normalized to 0–100% (sum of bins or max-bin normalization must be defined during implementation)
+
+### 6.4 Missing artifacts (error state)
+
+If required UI artifacts are missing for the selected run directory, show an explicit “No Data Artifacts Found” screen, modeled after:
+
+- `docs/stitch/data_missing_error_state/screen.png`
+
+Behavior:
+
+- List required filenames and whether each is present:
+  - `derived/ui/month_counts.csv`
+  - `derived/ui/day_counts.csv`
+  - `derived/ui/day_hour_counts.csv`
+  - `derived/ui/month_weekday_stats.csv`
+  - `derived/ui/calendar_day_index.csv` (only if the implementation chooses to require it)
+- Prefer “Change run” over “Upload CSV Files” (upload can be a future enhancement).
 
 ---
 
@@ -193,6 +253,7 @@ Error handling:
 - NFR1: Overview render should be sub-second after loading `month_counts.csv`.
 - NFR2: Month/week drilldowns should be sub-second by reading pre-aggregated artifacts and returning pre-shaped JSON.
 - NFR3: The UI must never parse `events.csv` for charts.
+- NFR4: UI should follow the Stitch layout and styling baseline under `docs/stitch/*` (sidebar, header, card spacing, typography, primary color).
 
 ---
 

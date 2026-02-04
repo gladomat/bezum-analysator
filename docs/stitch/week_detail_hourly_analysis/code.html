@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Week Detail Hourly Analysis</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#197fe6",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e2936",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for horizontal scrolling if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Histogram bar hover effect */
+        .hist-bar:hover {
+            opacity: 1 !important;
+            background-color: #197fe6 !important;
+            transform: scaleY(1.05);
+            transform-origin: bottom;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-50 min-h-screen flex flex-col font-display antialiased selection:bg-primary/20">
+<div class="layout-container flex h-full grow flex-col w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<!-- Breadcrumbs -->
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm mb-6">
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+                Overview
+            </a>
+<span class="material-symbols-outlined text-slate-400 text-[16px]">chevron_right</span>
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors" href="#">October 2023</a>
+<span class="material-symbols-outlined text-slate-400 text-[16px]">chevron_right</span>
+<span class="text-slate-900 dark:text-white font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-xs">Week 42</span>
+</nav>
+<!-- Header Section with Controls -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+<div class="flex flex-col gap-2 max-w-2xl">
+<h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    Week 42 Analysis
+                </h1>
+<p class="text-slate-500 dark:text-slate-400 text-base md:text-lg">
+                    Oct 14 - Oct 20 <span class="mx-2 text-slate-300 dark:text-slate-700">|</span> Hourly check frequency distribution per day
+                </p>
+</div>
+<!-- Action Panel: Normalize Toggle -->
+<div class="flex items-center gap-3 bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 shadow-sm">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-slate-900 dark:text-slate-100">Normalize</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Scale to %</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer group">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/40 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</header>
+<!-- Main Grid -->
+<main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Card 1: Monday -->
+<article class="flex flex-col bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow p-5 h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white">Monday</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Oct 14</p>
+</div>
+<div class="text-right">
+<span class="block text-xl font-bold text-slate-900 dark:text-white tracking-tight">14,203</span>
+<span class="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded">+12% vs avg</span>
+</div>
+</div>
+<!-- Chart Area -->
+<div class="flex-1 min-h-[160px] flex flex-col justify-end">
+<!-- Bars Container -->
+<div class="flex items-end justify-between h-32 w-full gap-[2px]">
+<!-- Loop for 24 hours. Peak at 09:00 and 18:00 -->
+<!-- 00-05: Low -->
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px] relative group" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px] relative group" style="height: 12%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px] relative group" style="height: 10%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px] relative group" style="height: 8%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px] relative group" style="height: 10%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px] relative group" style="height: 25%;"></div>
+<!-- 06-11: Morning Peak -->
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px] relative group" style="height: 45%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px] relative group" style="height: 65%;"></div>
+<div class="w-full bg-primary/80 hist-bar rounded-t-[2px] relative group" style="height: 85%;"></div>
+<div class="w-full bg-primary hist-bar rounded-t-[2px] relative group shadow-[0_0_10px_rgba(25,127,230,0.3)]" style="height: 95%;"> <!-- 09:00 Peak -->
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10 transition-opacity">09:00 - 1.2k</div>
+</div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px] relative group" style="height: 75%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px] relative group" style="height: 55%;"></div>
+<!-- 12-17: Midday Lull then rise -->
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px] relative group" style="height: 45%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px] relative group" style="height: 40%;"></div>
+<div class="w-full bg-primary/45 hist-bar rounded-t-[2px] relative group" style="height: 48%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px] relative group" style="height: 55%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px] relative group" style="height: 65%;"></div>
+<div class="w-full bg-primary/80 hist-bar rounded-t-[2px] relative group" style="height: 82%;"></div>
+<!-- 18-23: Evening Peak then drop -->
+<div class="w-full bg-primary hist-bar rounded-t-[2px] relative group" style="height: 90%;"> <!-- 18:00 Peak -->
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10 transition-opacity">18:00 - 1.1k</div>
+</div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px] relative group" style="height: 70%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px] relative group" style="height: 50%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px] relative group" style="height: 40%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px] relative group" style="height: 30%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px] relative group" style="height: 20%;"></div>
+</div>
+<!-- X Axis -->
+<div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2 px-1">
+<span>00</span>
+<span>06</span>
+<span>12</span>
+<span>18</span>
+<span>23</span>
+</div>
+</div>
+</article>
+<!-- Card 2: Tuesday -->
+<article class="flex flex-col bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow p-5 h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white">Tuesday</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Oct 15</p>
+</div>
+<div class="text-right">
+<span class="block text-xl font-bold text-slate-900 dark:text-white tracking-tight">15,100</span>
+<span class="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded">+5%</span>
+</div>
+</div>
+<div class="flex-1 min-h-[160px] flex flex-col justify-end">
+<div class="flex items-end justify-between h-32 w-full gap-[2px]">
+<!-- Consistent Activity -->
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 20%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 18%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 18%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 25%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 40%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 72%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 75%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 68%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 75%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 72%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 78%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 40%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 30%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px]" style="height: 25%;"></div>
+</div>
+<div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2 px-1">
+<span>00</span>
+<span>06</span>
+<span>12</span>
+<span>18</span>
+<span>23</span>
+</div>
+</div>
+</article>
+<!-- Card 3: Wednesday -->
+<article class="flex flex-col bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow p-5 h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white">Wednesday</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Oct 16</p>
+</div>
+<div class="text-right">
+<span class="block text-xl font-bold text-slate-900 dark:text-white tracking-tight">13,850</span>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">Avg</span>
+</div>
+</div>
+<div class="flex-1 min-h-[160px] flex flex-col justify-end">
+<div class="flex items-end justify-between h-32 w-full gap-[2px]">
+<!-- Random pattern -->
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 25%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 20%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 10%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 30%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 45%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 55%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 68%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 72%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 80%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 45%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 40%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 35%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 30%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 20%;"></div>
+</div>
+<div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2 px-1">
+<span>00</span>
+<span>06</span>
+<span>12</span>
+<span>18</span>
+<span>23</span>
+</div>
+</div>
+</article>
+<!-- Card 4: Thursday -->
+<article class="flex flex-col bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow p-5 h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white">Thursday</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Oct 17</p>
+</div>
+<div class="text-right">
+<span class="block text-xl font-bold text-slate-900 dark:text-white tracking-tight">14,920</span>
+<span class="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded">+3%</span>
+</div>
+</div>
+<div class="flex-1 min-h-[160px] flex flex-col justify-end">
+<div class="flex items-end justify-between h-32 w-full gap-[2px]">
+<!-- Steady rise -->
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 12%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 10%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 12%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 20%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 35%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 75%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 80%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 85%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 82%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 80%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 78%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 75%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 40%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 30%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 25%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 20%;"></div>
+</div>
+<div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2 px-1">
+<span>00</span>
+<span>06</span>
+<span>12</span>
+<span>18</span>
+<span>23</span>
+</div>
+</div>
+</article>
+<!-- Card 5: Friday -->
+<article class="flex flex-col bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow p-5 h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white">Friday</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Oct 18</p>
+</div>
+<div class="text-right">
+<span class="block text-xl font-bold text-slate-900 dark:text-white tracking-tight">16,200</span>
+<span class="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded">+15%</span>
+</div>
+</div>
+<div class="flex-1 min-h-[160px] flex flex-col justify-end">
+<div class="flex items-end justify-between h-32 w-full gap-[2px]">
+<!-- Evening spike -->
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 12%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 10%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 12%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 30%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 45%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 55%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 58%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 62%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 75%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 80%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 85%;"></div>
+<div class="w-full bg-primary/80 hist-bar rounded-t-[2px]" style="height: 90%;"></div>
+<div class="w-full bg-primary hist-bar rounded-t-[2px]" style="height: 95%;"> <!-- Late peak -->
+</div>
+<div class="w-full bg-primary/80 hist-bar rounded-t-[2px]" style="height: 85%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 40%;"></div>
+</div>
+<div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2 px-1">
+<span>00</span>
+<span>06</span>
+<span>12</span>
+<span>18</span>
+<span>23</span>
+</div>
+</div>
+</article>
+<!-- Card 6: Saturday -->
+<article class="flex flex-col bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow p-5 h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white">Saturday</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Oct 19</p>
+</div>
+<div class="text-right">
+<span class="block text-xl font-bold text-slate-900 dark:text-white tracking-tight">10,400</span>
+<span class="text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 px-1.5 py-0.5 rounded">-12%</span>
+</div>
+</div>
+<div class="flex-1 min-h-[160px] flex flex-col justify-end">
+<div class="flex items-end justify-between h-32 w-full gap-[2px]">
+<!-- Late Night Activity -->
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 75%;"></div>
+<div class="w-full bg-primary hist-bar rounded-t-[2px]" style="height: 85%;"></div> <!-- 02:00 peak -->
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 40%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 20%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px]" style="height: 10%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px]" style="height: 10%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 25%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 35%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 45%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 55%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 58%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 55%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 55%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 40%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 30%;"></div>
+</div>
+<div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2 px-1">
+<span>00</span>
+<span>06</span>
+<span>12</span>
+<span>18</span>
+<span>23</span>
+</div>
+</div>
+</article>
+<!-- Card 7: Sunday -->
+<article class="flex flex-col bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow p-5 h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white">Sunday</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Oct 20</p>
+</div>
+<div class="text-right">
+<span class="block text-xl font-bold text-slate-900 dark:text-white tracking-tight">9,800</span>
+<span class="text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 px-1.5 py-0.5 rounded">-18%</span>
+</div>
+</div>
+<div class="flex-1 min-h-[160px] flex flex-col justify-end">
+<div class="flex items-end justify-between h-32 w-full gap-[2px]">
+<!-- Midday Peak -->
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 25%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 20%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px]" style="height: 10%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px]" style="height: 8%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px]" style="height: 10%;"></div>
+<div class="w-full bg-primary/20 hist-bar rounded-t-[2px]" style="height: 15%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 25%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 35%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 65%;"></div>
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 75%;"></div>
+<div class="w-full bg-primary hist-bar rounded-t-[2px]" style="height: 85%;"></div> <!-- 12:00 Peak -->
+<div class="w-full bg-primary/70 hist-bar rounded-t-[2px]" style="height: 78%;"></div>
+<div class="w-full bg-primary/60 hist-bar rounded-t-[2px]" style="height: 70%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 60%;"></div>
+<div class="w-full bg-primary/50 hist-bar rounded-t-[2px]" style="height: 55%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 50%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 45%;"></div>
+<div class="w-full bg-primary/40 hist-bar rounded-t-[2px]" style="height: 40%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 35%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 30%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 25%;"></div>
+<div class="w-full bg-primary/30 hist-bar rounded-t-[2px]" style="height: 20%;"></div>
+</div>
+<div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2 px-1">
+<span>00</span>
+<span>06</span>
+<span>12</span>
+<span>18</span>
+<span>23</span>
+</div>
+</div>
+</article>
+</main>
+</div>
+<!-- Decorative elements to match "modern and clean" -->
+<div class="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500 z-50"></div>
+</body></html>

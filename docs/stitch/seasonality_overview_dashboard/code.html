@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Seasonality Overview Dashboard</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#197fe6",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem", 
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 overflow-hidden antialiased">
+<div class="flex h-screen w-full">
+<!-- Sidebar -->
+<aside class="flex flex-col w-64 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-colors">
+<div class="p-6">
+<div class="flex items-center gap-2 text-slate-900 dark:text-white mb-8">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<h1 class="text-lg font-bold tracking-tight">Analytics</h1>
+</div>
+<nav class="flex flex-col gap-1">
+<!-- Active Item -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary border-l-4 border-primary" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Overview</span>
+</a>
+<!-- Inactive Items -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_view_month</span>
+<span class="text-sm font-medium">Month Detail</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">date_range</span>
+<span class="text-sm font-medium">Week Detail</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6">
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">A</div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-900 dark:text-white">Admin User</span>
+<span class="text-[10px] text-slate-500">View profile</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<!-- Header Bar -->
+<header class="h-16 flex items-center justify-between px-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 z-10 sticky top-0">
+<div class="flex items-center gap-4">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 text-sm">
+<span class="text-slate-500 dark:text-slate-400">run_2023_v4</span>
+<span class="text-slate-400">/</span>
+<span class="text-slate-900 dark:text-white font-medium">overview</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<!-- Meta Text -->
+<div class="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">public</span>
+                            Europe/Berlin
+                        </span>
+<span class="w-px h-3 bg-slate-300 dark:bg-slate-600"></span>
+<span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Data loaded
+                        </span>
+</div>
+<!-- Action Button -->
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+                        Change run
+                    </button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Chart 1: Monthly Totals -->
+<section class="w-full bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex flex-col md:flex-row justify-between md:items-end mb-8 gap-4">
+<div>
+<h2 class="text-slate-900 dark:text-white text-lg font-semibold mb-1">Monthly Activity Totals</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Aggregated check volume across all monitored channels.</p>
+</div>
+<div class="text-right">
+<p class="text-primary tracking-tight text-3xl font-bold leading-tight">1.2M <span class="text-lg text-slate-400 font-normal">Total</span></p>
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Yearly Volume</p>
+</div>
+</div>
+<!-- Bar Chart Visual -->
+<div class="relative w-full h-[240px] mt-4">
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="w-full h-px bg-slate-100 dark:bg-slate-700 border-dashed"></div>
+<div class="w-full h-px bg-slate-100 dark:bg-slate-700 border-dashed"></div>
+<div class="w-full h-px bg-slate-100 dark:bg-slate-700 border-dashed"></div>
+<div class="w-full h-px bg-slate-100 dark:bg-slate-700 border-dashed"></div>
+<div class="w-full h-px bg-slate-200 dark:bg-slate-600"></div> <!-- Base line -->
+</div>
+<!-- Bars Container -->
+<div class="absolute inset-0 flex items-end justify-between px-2 pt-4">
+<!-- Bar Item -->
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/20 dark:bg-primary/20 rounded-t-sm h-[40%] group-hover:bg-primary transition-all relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">40k</div>
+</div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Jan</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/30 dark:bg-primary/30 rounded-t-sm h-[25%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Feb</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/40 dark:bg-primary/40 rounded-t-sm h-[55%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Mar</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/50 dark:bg-primary/50 rounded-t-sm h-[45%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Apr</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/60 dark:bg-primary/60 rounded-t-sm h-[65%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">May</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/80 dark:bg-primary/80 rounded-t-sm h-[15%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Jun</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary dark:bg-primary rounded-t-sm h-[85%] group-hover:bg-primary/80 transition-all relative shadow-lg shadow-primary/20">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">85k (Peak)</div>
+</div>
+<span class="text-xs font-bold text-primary">Jul</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/70 dark:bg-primary/70 rounded-t-sm h-[70%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Aug</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/60 dark:bg-primary/60 rounded-t-sm h-[50%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Sep</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/50 dark:bg-primary/50 rounded-t-sm h-[60%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Oct</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/30 dark:bg-primary/30 rounded-t-sm h-[40%] group-hover:bg-primary transition-all relative"></div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Nov</span>
+</div>
+<div class="group flex flex-col items-center gap-2 w-full">
+<div class="w-full max-w-[32px] bg-primary/20 dark:bg-primary/20 rounded-t-sm h-[90%] group-hover:bg-primary transition-all relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">90k</div>
+</div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Dec</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Chart 2: Daily Rate -->
+<section class="w-full bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex flex-col md:flex-row justify-between md:items-end mb-6 gap-4">
+<div>
+<h2 class="text-slate-900 dark:text-white text-lg font-semibold mb-1">Daily Check Rate</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Average frequency of checks per hour on a rolling timeline.</p>
+</div>
+<div class="text-right">
+<p class="text-primary tracking-tight text-3xl font-bold leading-tight">45 <span class="text-lg text-slate-400 font-normal">Checks/hr</span></p>
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Avg Velocity</p>
+</div>
+</div>
+<div class="flex flex-col h-[200px] w-full">
+<!-- Graph Container -->
+<div class="flex-1 w-full relative">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 1200 150">
+<!-- Gradient Definition -->
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#197fe6" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#197fe6" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Filled Area -->
+<path d="M0 109 C50 109 50 21 100 21 C150 21 150 41 200 41 C250 41 250 93 300 93 C350 93 350 33 400 33 C450 33 450 101 500 101 C550 101 550 61 600 61 C650 61 650 45 700 45 C750 45 750 121 800 121 C850 121 850 149 900 149 C950 149 950 1 1000 1 C1050 1 1050 81 1100 81 C1150 81 1150 129 1200 129 V150 H0 Z" fill="url(#chartGradient)"></path>
+<!-- Stroke Line -->
+<path d="M0 109 C50 109 50 21 100 21 C150 21 150 41 200 41 C250 41 250 93 300 93 C350 93 350 33 400 33 C450 33 450 101 500 101 C550 101 550 61 600 61 C650 61 650 45 700 45 C750 45 750 121 800 121 C850 121 850 149 900 149 C950 149 950 1 1000 1 C1050 1 1050 81 1100 81 C1150 81 1150 129 1200 129" fill="none" stroke="#197fe6" stroke-linecap="round" stroke-width="3" vector-effect="non-scaling-stroke"></path>
+<!-- Hover Point Example -->
+<circle class="fill-white stroke-primary stroke-[3px]" cx="600" cy="61" r="5"></circle>
+</svg>
+</div>
+<!-- X-Axis Labels -->
+<div class="flex justify-between mt-4 px-2 border-t border-slate-200 dark:border-slate-700 pt-3">
+<span class="text-xs font-bold text-slate-400 tracking-wide uppercase">Mon</span>
+<span class="text-xs font-bold text-slate-400 tracking-wide uppercase">Tue</span>
+<span class="text-xs font-bold text-slate-400 tracking-wide uppercase">Wed</span>
+<span class="text-xs font-bold text-slate-400 tracking-wide uppercase">Thu</span>
+<span class="text-xs font-bold text-slate-400 tracking-wide uppercase">Fri</span>
+<span class="text-xs font-bold text-slate-400 tracking-wide uppercase">Sat</span>
+<span class="text-xs font-bold text-slate-400 tracking-wide uppercase">Sun</span>
+</div>
+</div>
+</section>
+<!-- KPI Cards Row -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- KPI 1 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between group hover:border-primary/50 transition-colors">
+<div class="flex items-start justify-between">
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Checks</span>
+<div class="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-primary">
+<span class="material-symbols-outlined text-[20px]">bar_chart</span>
+</div>
+</div>
+<div class="mt-4">
+<p class="text-3xl font-bold text-slate-900 dark:text-white">1,245,092</p>
+<p class="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                                12% vs last run
+                            </p>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between group hover:border-primary/50 transition-colors">
+<div class="flex items-start justify-between">
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">Date Range</span>
+<div class="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-primary">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+</div>
+</div>
+<div class="mt-4">
+<p class="text-xl font-bold text-slate-900 dark:text-white truncate">Jan 1 - Dec 31</p>
+<p class="text-xs text-slate-400 font-medium mt-2">Fiscal Year 2023</p>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between group hover:border-primary/50 transition-colors">
+<div class="flex items-start justify-between">
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">Busiest Weekday</span>
+<div class="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-primary">
+<span class="material-symbols-outlined text-[20px]">today</span>
+</div>
+</div>
+<div class="mt-4">
+<p class="text-3xl font-bold text-slate-900 dark:text-white">Wednesday</p>
+<p class="text-xs text-slate-400 font-medium mt-1">22% of total traffic</p>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between group hover:border-primary/50 transition-colors">
+<div class="flex items-start justify-between">
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">Peak Hour</span>
+<div class="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-primary">
+<span class="material-symbols-outlined text-[20px]">schedule</span>
+</div>
+</div>
+<div class="mt-4">
+<p class="text-3xl font-bold text-slate-900 dark:text-white">21:00</p>
+<p class="text-xs text-slate-400 font-medium mt-1">UTC+1 Timezone</p>
+</div>
+</div>
+</section>
+<div class="h-8"></div> <!-- Bottom Spacer -->
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Data Missing Error State</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#197fe6",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0e141b] dark:text-white overflow-hidden">
+<div class="flex h-screen w-full flex-row overflow-hidden">
+<!-- SideNavBar -->
+<div class="flex h-full w-64 flex-col border-r border-[#e7edf3] bg-white dark:bg-[#111921] dark:border-[#2a3441] flex-shrink-0">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-6">
+<!-- Branding -->
+<div class="flex gap-3 items-center px-2">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shadow-sm" data-alt="Abstract blue geometric logo representing data analytics" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBcorvMZBSpo-2md28Ws7_V8WtFSq6EhNLYcx_UkuQcG41ZhTrUEZg6XG57498ApdGyob8MwQkU3Qxgh2RjPGOQt5nX06bnJLlEi7IlvElDsZX_Zu7RPxnBBArI0_0724CW2M6-lqAWsMWIHMgLuw8qp2FTiHFP2r20jZnZ_JZkAYsnRnBjD-K9gi9FHaakew0vN1kKi9xcJXT_b5yC80sG3FG8kpHTy2fY2uEhNfOpEudn80cPCgl8nc3tUhlFaGUY3tu7iwEADw");'></div>
+<div class="flex flex-col">
+<h1 class="text-[#0e141b] dark:text-white text-base font-bold leading-normal">Telegram Analytics</h1>
+<p class="text-[#4e7397] text-xs font-normal leading-normal">Dashboard v2.0</p>
+</div>
+</div>
+<!-- Navigation -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+<span class="material-symbols-outlined text-[#4e7397] group-hover:text-primary" style="font-size: 24px;">home</span>
+<p class="text-[#0e141b] dark:text-gray-200 text-sm font-medium leading-normal">Overview</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+<span class="material-symbols-outlined text-[#4e7397] group-hover:text-primary" style="font-size: 24px;">bar_chart</span>
+<p class="text-[#0e141b] dark:text-gray-200 text-sm font-medium leading-normal">Analytics</p>
+</div>
+<!-- Active State -->
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 dark:bg-primary/20 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1; font-size: 24px;">calendar_month</span>
+<p class="text-primary text-sm font-bold leading-normal">Seasonality</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+<span class="material-symbols-outlined text-[#4e7397] group-hover:text-primary" style="font-size: 24px;">description</span>
+<p class="text-[#0e141b] dark:text-gray-200 text-sm font-medium leading-normal">Reports</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+<span class="material-symbols-outlined text-[#4e7397] group-hover:text-primary" style="font-size: 24px;">settings</span>
+<p class="text-[#0e141b] dark:text-gray-200 text-sm font-medium leading-normal">Settings</p>
+</div>
+</div>
+</div>
+<!-- User Profile (Optional placeholder for bottom of sidebar) -->
+<div class="flex items-center gap-3 px-3 py-2 mt-auto">
+<div class="size-8 rounded-full bg-slate-200 bg-cover bg-center" data-alt="User avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfs19bZzZGhViQ9xsD44tc6YBgomGAB2In5nS2cVfZF1ZQkdoRHltvFIz30jdLZ1G_u_Js7W2NDi6NDQtg7NjIY0EAuOdVG-j_pSzvG4SAZUiLtL6Ozuypf21iC08ocRlnj8-69IvPouP6miJsAJaj9VkyFjorNnrYeMqXqHaSBDzI0bUxZ7JCdzGFYprbYCa9QbTOHov-xCltFY4qVAB_AMyIBaDdoKjoCrAXg3XyN3xnA6r9Q_NlnUkidXo3GebWIDQRdAK0-Q");'></div>
+<div class="flex flex-col">
+<p class="text-sm font-medium text-[#0e141b] dark:text-white">Alex Morgan</p>
+<p class="text-xs text-[#4e7397]">Pro Plan</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Content Area -->
+<div class="flex flex-col flex-1 h-full overflow-hidden bg-background-light dark:bg-background-dark">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#e7edf3] dark:border-[#2a3441] bg-white dark:bg-[#111921] px-8 py-4 flex-shrink-0 z-10">
+<div class="flex items-center gap-4">
+<!-- Breadcrumb / Back Icon -->
+<button class="text-[#4e7397] hover:text-[#0e141b] dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+</button>
+<h2 class="text-[#0e141b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Check Frequency Analysis</h2>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-lg hover:bg-[#e7edf3] dark:hover:bg-slate-800 text-[#4e7397] transition-colors">
+<span class="material-symbols-outlined" style="font-size: 24px;">notifications</span>
+</button>
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-lg hover:bg-[#e7edf3] dark:hover:bg-slate-800 text-[#4e7397] transition-colors">
+<span class="material-symbols-outlined" style="font-size: 24px;">help</span>
+</button>
+</div>
+</header>
+<!-- Main Scrollable Area -->
+<main class="flex-1 overflow-y-auto p-8 flex items-center justify-center">
+<!-- Error State Card -->
+<div class="w-full max-w-[640px] flex flex-col items-center bg-white dark:bg-[#1a2632] rounded-xl shadow-sm border border-[#e7edf3] dark:border-[#2a3441] overflow-hidden">
+<!-- Hero Image / Icon Area -->
+<div class="w-full bg-slate-50 dark:bg-[#111921] py-10 flex justify-center border-b border-[#e7edf3] dark:border-[#2a3441]">
+<div class="relative">
+<div class="size-32 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-amber-500" style="font-size: 64px;">folder_off</span>
+</div>
+<!-- Decorative element -->
+<div class="absolute -bottom-2 -right-2 bg-white dark:bg-[#1a2632] p-1 rounded-full">
+<span class="material-symbols-outlined text-red-500 bg-red-100 dark:bg-red-900/30 rounded-full p-1" style="font-size: 20px;">priority_high</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col px-8 py-8 w-full">
+<div class="flex flex-col items-center gap-4 text-center mb-8">
+<h3 class="text-[#0e141b] dark:text-white text-xl font-bold leading-tight">No Data Artifacts Found</h3>
+<p class="text-[#4e7397] text-sm font-normal leading-relaxed max-w-[480px]">
+                            We couldn't generate the seasonality report because required data files are missing from your workspace. Please upload the necessary CSVs to proceed.
+                        </p>
+</div>
+<!-- Checklist: Required Files -->
+<div class="w-full bg-[#f8fafc] dark:bg-[#111921] rounded-lg border border-[#e7edf3] dark:border-[#2a3441] p-4 mb-8">
+<h4 class="text-xs font-bold text-[#4e7397] uppercase tracking-wider mb-3 px-2">Missing Files Required</h4>
+<div class="flex flex-col gap-1">
+<!-- Item 1 -->
+<div class="flex items-center gap-3 p-2 rounded-md bg-white dark:bg-[#1a2632] border border-transparent shadow-sm">
+<div class="flex items-center justify-center size-8 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500">
+<span class="material-symbols-outlined" style="font-size: 20px;">csv</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-[#0e141b] dark:text-gray-200 text-sm font-medium truncate font-mono">monthly_aggregates.csv</p>
+</div>
+<div class="flex items-center gap-1 px-2 py-1 bg-red-50 dark:bg-red-900/20 rounded text-red-600 dark:text-red-400">
+<span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+<span class="text-xs font-bold">Missing</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-3 p-2 rounded-md bg-white dark:bg-[#1a2632] border border-transparent shadow-sm">
+<div class="flex items-center justify-center size-8 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500">
+<span class="material-symbols-outlined" style="font-size: 20px;">csv</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-[#0e141b] dark:text-gray-200 text-sm font-medium truncate font-mono">daily_counts.csv</p>
+</div>
+<div class="flex items-center gap-1 px-2 py-1 bg-red-50 dark:bg-red-900/20 rounded text-red-600 dark:text-red-400">
+<span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+<span class="text-xs font-bold">Missing</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-3 p-2 rounded-md bg-white dark:bg-[#1a2632] border border-transparent shadow-sm">
+<div class="flex items-center justify-center size-8 rounded bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-500">
+<span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-[#0e141b] dark:text-gray-200 text-sm font-medium truncate font-mono">user_interactions.csv</p>
+</div>
+<div class="flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-900/20 rounded text-green-700 dark:text-green-400">
+<span class="text-xs font-bold">Ready</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-4 items-center w-full">
+<button class="w-full max-w-[320px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-6 bg-primary hover:bg-blue-600 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] flex transition-all shadow-md hover:shadow-lg">
+<span class="material-symbols-outlined" style="font-size: 20px;">upload_file</span>
+<span class="truncate">Upload CSV Files</span>
+</button>
+<a class="text-[#4e7397] hover:text-primary text-sm font-normal leading-normal underline decoration-slate-300 underline-offset-4 transition-colors" href="#">
+                            Learn how to export Telegram data correctly
+                        </a>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>
