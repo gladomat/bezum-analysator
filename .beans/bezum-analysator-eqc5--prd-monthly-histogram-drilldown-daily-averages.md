@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-eqc5
 title: 'PRD: Monthly histogram drilldown + daily averages'
-status: in-progress
+status: completed
 type: task
+priority: normal
 created_at: 2026-02-04T15:26:44Z
-updated_at: 2026-02-04T15:30:19Z
+updated_at: 2026-02-04T15:31:33Z
 ---
 
 Create a product requirements document (PRD) for a web UI that:
@@ -19,4 +20,4 @@ Create a product requirements document (PRD) for a web UI that:
 - [x] Define API / endpoints (if needed)
 - [x] Define acceptance criteria + edge cases
 - [x] Write PRD doc in docs/plans
-- [ ] Commit PRD + bean updates
+- [x] Commit PRD + bean updates
