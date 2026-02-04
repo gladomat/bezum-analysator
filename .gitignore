@@ -2,6 +2,7 @@
 .worktrees/
 .venv/
 .venv-main-tmp/
+.venv_main_tmp/
 runs/
 __pycache__/
 .pytest_cache/
