@@ -11,8 +11,9 @@
 Add a local website for exploring tg-checkstats results with an interactive drilldown:
 
 1. **Month overview:** a histogram/bar chart for each month in the dataset.
-2. **Month detail:** clicking a month shows **weekly drilldown**, where selecting a week shows **per-day histograms** (7 panels for the days in that week).
-3. **Month averages:** show the **average per weekday** for the selected month (Mon..Sun).
+2. **Month detail:** clicking a month shows a **week grid** (rows = weeks, columns = Mon..Sun). Clicking a week drills into that week.
+3. **Week detail:** show **per-day histograms by hour-of-day** (7 panels for Mon..Sun).
+4. **Month averages:** show the **average per weekday** for the selected month (Mon..Sun).
 
 The UI should work against a single run directory and read precomputed derived artifacts, so it remains fast and reproducible.
 
@@ -92,21 +93,26 @@ The UI needs a way to select which analysis run to display. Options:
 
 ### 5.3 Page: Month detail (week list + averages)
 
-**Week selector:**
+**Week grid (required):**
 
-- Show weeks that overlap the selected month.
-- For each week: display week label (ISO year-week) and an aggregate count for the portion inside the month.
+- Show a plot with **one row per week** in/overlapping the selected month, laid out **Mon..Sun**.
+- Each cell represents one calendar day; the cell value is that day's total for the selected metric.
+- Days outside the selected month are shown but visually de-emphasized (e.g., greyed) and excluded from month totals/means.
+
+**Interaction:**
+
+- Clicking a week (row label or any in-month cell in that row) navigates to Week detail for that ISO week.
 
 **Averages panel (required):**
 
 - Bar chart of **mean events per weekday** within the selected month: Mon..Sun.
 - If the month contains a weekday only 4 times (or partial month), the mean uses occurrences in-range.
 
-### 5.4 Panel: Week drilldown (per-day histograms)
+### 5.4 Page: Week detail (per-day histograms by hour-of-day)
 
-After selecting a week, show 7 small histograms (one per day in that week).
+After selecting a week, show 7 small histograms (one per weekday, Mon..Sun) for that week.
 
-**Histogram spec (recommended default):**
+**Histogram spec (required):**
 
 - X-axis: hour-of-day (0–23)
 - Y-axis: count for selected metric (`check_event_count` or `check_message_count`)
@@ -166,12 +172,14 @@ These keep the UI deterministic while making it fast and memory-safe.
 
 ### FR4 — Weekly drilldown
 
-- The Month detail view shall list/select weeks that overlap the selected month.
-- Selecting a week shall render 7 day panels for that week, including days outside the month (visually indicated) OR only days within the month (see Open question Q3).
+- The Month detail view shall render a week grid (rows = weeks, columns = Mon..Sun) for the selected month.
+- Each day cell shall show the day's total for the selected metric.
+- Clicking a week shall navigate to Week detail for that ISO week.
+- Day cells outside the selected month shall be visually indicated and excluded from month-level aggregates and means.
 
 ### FR5 — Per-day histogram (hour-of-day)
 
-- For each day in the selected week, the UI shall show a histogram across hours 0–23.
+- For each day in the selected week (Mon..Sun), the UI shall show a histogram across hours 0–23.
 - The UI shall support the metric toggle for the histogram values.
 
 ### FR6 — Shareable state (nice-to-have for v1)
@@ -209,30 +217,26 @@ Notes:
 
 - AC1: Given a run directory, Month overview renders bars for all months present in the run’s derived data.
 - AC2: Clicking a month opens Month detail for that month.
-- AC3: Month detail displays averages per weekday (Mon..Sun) for that month.
-- AC4: Selecting a week displays 7 per-day histograms for that week.
-- AC5: Metric toggle updates all charts consistently.
-- AC6: Partial month/week handling is visible and does not miscount days in range.
+- AC3: Month detail shows a week grid with rows=weeks and columns=Mon..Sun, with outside-month days visually indicated.
+- AC4: Month detail displays averages per weekday (Mon..Sun) for that month.
+- AC5: Clicking a week in the grid opens Week detail for that week.
+- AC6: Week detail displays 7 per-day (Mon..Sun) hour-of-day histograms (0–23).
+- AC7: Metric toggle updates all charts consistently.
+- AC8: Partial month/week handling is visible and does not miscount days in range.
 
 ---
 
-## 10) Open questions (need a decision)
+## 10) Decisions & open questions
 
-Q1 (most important): What should “histogram” mean in the drilldown?
+**Decisions captured:**
 
-- A) Hour-of-day distribution (0–23) **(recommended; matches seasonality goal)**
-- B) Counts by weekday (Mon..Sun)
-- C) Counts by day-of-month (1..31)
+- Drilldown histogram meaning: **hour-of-day (0–23)**.
+- Month detail week grid: **rows=weeks, columns=Mon..Sun**, with outside-month days shown but visually de-emphasized.
 
-Q2: For Month overview bars, should the default Y value be:
+Open question Q1: For Month overview bars, should the default Y value be:
 
 - A) total per month
 - B) normalized per day in that month (events/day)
-
-Q3: In Week drilldown within a month, should we:
-
-- A) show the full ISO week (7 days), marking days outside the month
-- B) show only the days that fall within the selected month
 
 ---
 
