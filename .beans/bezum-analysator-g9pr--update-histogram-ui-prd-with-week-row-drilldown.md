@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-g9pr
 title: Update histogram UI PRD with week-row drilldown
-status: in-progress
+status: completed
 type: task
+priority: normal
 created_at: 2026-02-04T15:34:30Z
-updated_at: 2026-02-04T15:34:30Z
+updated_at: 2026-02-04T15:35:43Z
 ---
 
 Update the PRD to reflect decided interaction:
@@ -14,5 +15,5 @@ Update the PRD to reflect decided interaction:
 
 ## Checklist
 - [x] Update PRD sections (UX + FRs + ACs + open questions)
-- [ ] Mark bean completed
-- [ ] Commit PRD + bean file
+- [x] Commit PRD + bean file
+- [x] Mark bean completed
