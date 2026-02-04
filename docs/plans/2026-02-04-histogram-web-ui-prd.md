@@ -84,8 +84,14 @@ The UI needs a way to select which analysis run to display. Options:
 **Controls:**
 
 - Metric toggle: `check_event_count` vs `check_message_count`
-- Y-axis toggle: `total` vs `per-day normalized` (where available)
+- Show both: **total per month** and **per-day normalized** (where available)
 - Filter: date range (optional for v1; can be added later)
+
+**Layout (recommended):**
+
+- Two aligned charts sharing the same month X-axis:
+  - Chart A: totals per month
+  - Chart B: normalized per-day rate for the same metric
 
 **Interaction:**
 
@@ -155,9 +161,10 @@ These keep the UI deterministic while making it fast and memory-safe.
 ### FR1 — Month overview histogram
 
 - The UI shall render one bar per `YYYY-MM` month in the dataset.
-- The UI shall support toggling between:
+- The Month overview shall display both:
   - total counts per month
   - normalized per-day rates per month (if the source provides `days_in_month_in_range`)
+- The metric toggle shall apply consistently to both views.
 
 ### FR2 — Month selection
 
@@ -215,14 +222,15 @@ Notes:
 
 ## 9) Acceptance criteria (definition of done)
 
-- AC1: Given a run directory, Month overview renders bars for all months present in the run’s derived data.
-- AC2: Clicking a month opens Month detail for that month.
-- AC3: Month detail shows a week grid with rows=weeks and columns=Mon..Sun, with outside-month days visually indicated.
-- AC4: Month detail displays averages per weekday (Mon..Sun) for that month.
-- AC5: Clicking a week in the grid opens Week detail for that week.
-- AC6: Week detail displays 7 per-day (Mon..Sun) hour-of-day histograms (0–23).
-- AC7: Metric toggle updates all charts consistently.
-- AC8: Partial month/week handling is visible and does not miscount days in range.
+- AC1: Given a run directory, Month overview renders totals-per-month for all months present in the run’s derived data.
+- AC2: Month overview also renders per-day normalized rates for the same months (when `days_in_month_in_range` is available).
+- AC3: Clicking a month opens Month detail for that month.
+- AC4: Month detail shows a week grid with rows=weeks and columns=Mon..Sun, with outside-month days visually indicated.
+- AC5: Month detail displays averages per weekday (Mon..Sun) for that month.
+- AC6: Clicking a week in the grid opens Week detail for that week.
+- AC7: Week detail displays 7 per-day (Mon..Sun) hour-of-day histograms (0–23).
+- AC8: Metric toggle updates all charts consistently.
+- AC9: Partial month/week handling is visible and does not miscount days in range.
 
 ---
 
@@ -232,11 +240,7 @@ Notes:
 
 - Drilldown histogram meaning: **hour-of-day (0–23)**.
 - Month detail week grid: **rows=weeks, columns=Mon..Sun**, with outside-month days shown but visually de-emphasized.
-
-Open question Q1: For Month overview bars, should the default Y value be:
-
-- A) total per month
-- B) normalized per day in that month (events/day)
+- Month overview shows **both totals and per-day normalized** (aligned views).
 
 ---
 
