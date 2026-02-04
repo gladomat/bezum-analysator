@@ -64,6 +64,7 @@
     const w = 900;
     const h = 180;
     const pad = 26;
+    const allZero = values.length > 0 && values.every((v) => v === 0);
     const max = Math.max(1, ...values);
     const barW = Math.max(2, (w - pad * 2) / values.length - 2);
     const bars = values
@@ -85,6 +86,11 @@
       <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
         <rect x="0" y="0" width="${w}" height="${h}" rx="12" fill="#ffffff" stroke="#e2e8f0"></rect>
         ${bars}
+        ${
+          allZero
+            ? `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="12" fill="#64748b">All values are 0</text>`
+            : ""
+        }
         ${ticks}
       </svg>
     `;
@@ -342,4 +348,3 @@
     $("content").innerHTML = `<div class="card error"><div class="card__title">UI failed to load</div><div class="card__sub mono">${String(err)}</div></div>`;
   });
 })();
-
