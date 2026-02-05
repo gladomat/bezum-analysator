@@ -4,5 +4,6 @@ ijson==3.2.3
 python-dateutil==2.9.0.post0
 tzdata==2025.1
 pandas==2.2.3
+scipy==1.17.0
 pytest==8.3.4
 backports.zoneinfo==0.2.1; python_version < '3.9'
