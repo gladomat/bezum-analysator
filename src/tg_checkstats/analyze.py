@@ -41,6 +41,17 @@ class AnalyzeConfig:
     include_service: bool = False
     include_bots: bool = True
     include_forwards: bool = True
+    stitch_followups: bool = True
+    stitch_window_seconds: int = 5 * 60
+
+
+@dataclass
+class _OpenEventForStitching:
+    """Tracks the last open event row for a sender to stitch follow-up details."""
+
+    event_row: Dict[str, Any]
+    last_timestamp_utc: datetime
+    stitched_message_ids: List[int]
 
 
 def analyze_export(
@@ -96,6 +107,8 @@ def analyze_export(
 
     seen_ids: set[int] = set()
 
+    open_event_by_sender: Dict[str, _OpenEventForStitching] = {}
+
     for message in iter_messages(input_path):
         counts["messages_scanned"] += 1
 
@@ -140,6 +153,8 @@ def analyze_export(
 
         counts["messages_included"] += 1
 
+        sender_key = extract_sender_key(message)
+
         raw_text = message.get("text") if isinstance(message, dict) else None
         raw_caption = message.get("caption") if isinstance(message, dict) else None
 
@@ -149,7 +164,19 @@ def analyze_export(
         search_text = build_search_text(normalized_text, normalized_caption)
 
         event_info = detect_event(search_text)
-        if event_info["match_type"] == "none":
+        if not event_info.get("is_check_event", False):
+            if (
+                cfg.stitch_followups
+                and sender_key is not None
+                and event_info.get("is_detail_only", False)
+                and sender_key in open_event_by_sender
+            ):
+                stitch = open_event_by_sender[sender_key]
+                if (timestamp_utc - stitch.last_timestamp_utc).total_seconds() <= cfg.stitch_window_seconds:
+                    _stitch_followup_into_event(stitch, message_id, timestamp_utc, event_info)
+                else:
+                    # Window expired; drop open stitch state.
+                    open_event_by_sender.pop(sender_key, None)
             continue
 
         event_weight = compute_event_weight(cfg.event_count_policy, event_info["k_token_hit_count"])
@@ -162,6 +189,7 @@ def analyze_export(
         week_of_month = 1 + (timestamp_berlin.day - 1) // 7
 
         event_row = {
+            "event_id": f"evt-{message_id}",
             "message_id": message_id,
             "timestamp_utc": timestamp_utc.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z"),
             "timestamp_berlin": timestamp_berlin.isoformat(),
@@ -179,11 +207,37 @@ def analyze_export(
             "matched_k_values": json.dumps(event_info["matched_k_values"], separators=(",", ":"), ensure_ascii=False),
             "matched_keywords": json.dumps(event_info["matched_keywords"], separators=(",", ":"), ensure_ascii=False),
             "k_token_hit_count": event_info["k_token_hit_count"],
+            "confidence_score": event_info.get("confidence_score", 0),
+            "k_min": event_info.get("k_min"),
+            "k_max": event_info.get("k_max"),
+            "k_qualifier": event_info.get("k_qualifier") or "",
+            "control_keyword_hit": event_info.get("control_keyword_hit", False),
+            "control_keyword_forms": json.dumps(
+                event_info.get("control_keyword_forms", []),
+                separators=(",", ":"),
+                ensure_ascii=False,
+            ),
+            "line_id": event_info.get("line_id") or "",
+            "mode_guess": event_info.get("mode_guess") or "",
+            "line_validated": event_info.get("line_validated", False),
+            "line_confidence": event_info.get("line_confidence") or "",
+            "direction_text": event_info.get("direction_text") or "",
+            "direction_polarity": event_info.get("direction_polarity") or "",
+            "location_text": event_info.get("location_text") or "",
+            "platform_text": event_info.get("platform_text") or "",
+            "stitched_message_ids": "[]",
             "text_trunc": search_text[: cfg.text_trunc_len],
             "text_len": len(search_text),
             "text_sha256": sha256_hex(search_text),
         }
         events.append(event_row)
+
+        if cfg.stitch_followups and sender_key is not None:
+            open_event_by_sender[sender_key] = _OpenEventForStitching(
+                event_row=event_row,
+                last_timestamp_utc=timestamp_utc,
+                stitched_message_ids=[],
+            )
 
         update_counts(daily_counts, message_date, event_weight)
         update_counts(weekday_counts, weekday_idx, event_weight)
@@ -358,12 +412,69 @@ def extract_message_id(message: Dict[str, Any]) -> int | None:
     return None
 
 
+def extract_sender_key(message: Dict[str, Any]) -> str | None:
+    """Extract a stable-ish sender identifier from known fields.
+
+    This is intentionally best-effort: telegram export formats vary. The key is
+    only used to stitch near-term follow-up messages into the previous event.
+    """
+    for key in ("from_id", "sender_id", "user_id", "author_id"):
+        value = message.get(key)
+        if isinstance(value, (int, str)):
+            return str(value)
+        if isinstance(value, dict):
+            for subkey in ("user_id", "id", "peer_id", "username"):
+                sub = value.get(subkey)
+                if isinstance(sub, (int, str)):
+                    return str(sub)
+
+    sender = message.get("from")
+    if isinstance(sender, str) and sender.strip():
+        return sender.strip()
+    if isinstance(sender, dict):
+        for subkey in ("id", "user_id", "username"):
+            sub = sender.get(subkey)
+            if isinstance(sub, (int, str)):
+                return str(sub)
+    return None
+
+
 def extract_timestamp_value(message: Dict[str, Any]) -> Any:
     """Extract a timestamp value from known fields."""
     for key in ("date", "timestamp", "date_utc", "time", "created_at"):
         if key in message:
             return message.get(key)
     return None
+
+
+def _stitch_followup_into_event(
+    stitch: _OpenEventForStitching,
+    message_id: int,
+    timestamp_utc: datetime,
+    event_info: Dict[str, Any],
+) -> None:
+    """Merge extracted detail fields from a follow-up message into an open event row."""
+    row = stitch.event_row
+
+    def fill_if_missing(key: str, value: Any) -> None:
+        current = row.get(key)
+        if current in (None, "", "unknown") and value not in (None, "", "unknown"):
+            row[key] = value
+
+    fill_if_missing("line_id", event_info.get("line_id") or "")
+    fill_if_missing("mode_guess", event_info.get("mode_guess") or "")
+    # Preserve existing validation if already true.
+    if not row.get("line_validated", False) and event_info.get("line_validated", False):
+        row["line_validated"] = True
+    fill_if_missing("line_confidence", event_info.get("line_confidence") or "")
+    fill_if_missing("direction_text", event_info.get("direction_text") or "")
+    fill_if_missing("direction_polarity", event_info.get("direction_polarity") or "")
+    fill_if_missing("location_text", event_info.get("location_text") or "")
+    fill_if_missing("platform_text", event_info.get("platform_text") or "")
+
+    stitch.stitched_message_ids.append(message_id)
+    row["stitched_message_ids"] = json.dumps(stitch.stitched_message_ids, separators=(",", ":"), ensure_ascii=False)
+    stitch.last_timestamp_utc = timestamp_utc
 
 
 def normalize_message_text(
@@ -583,6 +694,7 @@ def days_in_calendar_month(month: str) -> int:
 def write_events_csv(path: Path, events: List[Dict[str, Any]]) -> None:
     """Write events.csv with deterministic ordering."""
     fieldnames = [
+        "event_id",
         "message_id",
         "timestamp_utc",
         "timestamp_berlin",
@@ -600,6 +712,21 @@ def write_events_csv(path: Path, events: List[Dict[str, Any]]) -> None:
         "matched_k_values",
         "matched_keywords",
         "k_token_hit_count",
+        "confidence_score",
+        "k_min",
+        "k_max",
+        "k_qualifier",
+        "control_keyword_hit",
+        "control_keyword_forms",
+        "line_id",
+        "mode_guess",
+        "line_validated",
+        "line_confidence",
+        "direction_text",
+        "direction_polarity",
+        "location_text",
+        "platform_text",
+        "stitched_message_ids",
         "text_trunc",
         "text_len",
         "text_sha256",
