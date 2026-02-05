@@ -24,6 +24,9 @@ dev = [
   "ipykernel>=6.29.0",
   "matplotlib>=3.8.0",
 ]
+bayes = [
+  "scipy>=1.11.0",
+]
 
 [project.scripts]
 tg-checkstats = "tg_checkstats.cli:app"
