@@ -86,11 +86,10 @@
       <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
         <rect x="0" y="0" width="${w}" height="${h}" rx="12" fill="#ffffff" stroke="#e2e8f0"></rect>
         ${bars}
-        ${
-          allZero
-            ? `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="12" fill="#64748b">All values are 0</text>`
-            : ""
-        }
+        ${allZero
+        ? `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="12" fill="#64748b">All values are 0</text>`
+        : ""
+      }
         ${ticks}
       </svg>
     `;
@@ -183,7 +182,7 @@
     `;
 
     const heat = card.querySelector("#heat");
-    heat.innerHTML = `<div></div>` + ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => `<div class="heatmap__head">${d}</div>`).join("");
+    heat.innerHTML = `<div></div>` + ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => `<div class="heatmap__head">${d}</div>`).join("");
 
     payload.weeks.forEach((w) => {
       const weekLabel = document.createElement("div");
@@ -196,7 +195,7 @@
       heat.appendChild(weekLabel);
 
       for (let wd = 0; wd < 7; wd++) {
-        const c = weekMap.get(`${w}:${wd}`) || { in_month:false, in_range:false, date:"", check_message_count:0, check_event_count:0 };
+        const c = weekMap.get(`${w}:${wd}`) || { in_month: false, in_range: false, date: "", check_message_count: 0, check_event_count: 0 };
         const value = metric === "check_event_count" ? c.check_event_count : c.check_message_count;
         const dayNum = c.date ? c.date.slice(-2) : "";
         const tile = document.createElement("div");
@@ -223,7 +222,7 @@
     const labels = payload.weekday_stats.map((s) => s.weekday);
     const values = payload.weekday_stats.map((s) => metric === "check_event_count" ? s.mean_events_per_weekday_in_range : s.mean_messages_per_weekday_in_range);
     statsCard.querySelector("#weekdayBars").appendChild(
-      svgBarChart({ labels, values, onClick: () => {} })
+      svgBarChart({ labels, values, onClick: () => { } })
     );
 
     $("content").innerHTML = "";
@@ -286,8 +285,10 @@
     if (path === "/") return { route: "overview" };
     const m = path.match(/^\/month\/(\d{4}-\d{2})$/);
     if (m) return { route: "month", month: m[1] };
+    if (path === "/month") return { route: "month", month: null };
     const w = path.match(/^\/week\/(\d{4}-\d{2}-\d{2})$/);
     if (w) return { route: "week", week: w[1] };
+    if (path === "/week") return { route: "week", week: null };
     return { route: "overview" };
   }
 
@@ -297,7 +298,7 @@
   }
 
   async function render() {
-    const { route, month, week } = parseRoute();
+    let { route, month, week } = parseRoute();
     setActiveNav(route);
     if (!state.run) return;
 
@@ -306,11 +307,25 @@
     }
 
     if (route === "overview") return renderOverview();
-    if (route === "month" && month) {
+    if (route === "month") {
+      if (!month && state.months && state.months.length > 0) {
+        month = state.months[0].month;
+        history.replaceState({}, "", `/month/${month}`);
+      }
+      if (!month) return renderOverview();
       const payload = await api(`/api/month/${month}`);
       return renderMonth(payload);
     }
-    if (route === "week" && week) {
+    if (route === "week") {
+      if (!week && state.months && state.months.length > 0) {
+        const firstMonth = state.months[0].month;
+        const monthPayload = await api(`/api/month/${firstMonth}`);
+        if (monthPayload.weeks && monthPayload.weeks.length > 0) {
+          week = monthPayload.weeks[0];
+          history.replaceState({}, "", `/week/${week}`);
+        }
+      }
+      if (!week) return renderOverview();
       const payload = await api(`/api/week/${week}`);
       return renderWeek(payload);
     }
@@ -339,6 +354,16 @@
     }
 
     window.addEventListener("popstate", render);
+
+    // Intercept sidebar navigation clicks for SPA behavior
+    document.querySelectorAll(".nav__item").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const href = link.getAttribute("href");
+        navigate(href);
+      });
+    });
+
     render();
   }
 
