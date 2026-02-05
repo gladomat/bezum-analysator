@@ -40,6 +40,10 @@
     return new Intl.NumberFormat(undefined).format(n);
   }
 
+  function formatNumber(n, maxFractionDigits = 3) {
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: maxFractionDigits }).format(n);
+  }
+
   function metricLabel(metric) {
     return metric === "check_event_count" ? "Events" : "Messages";
   }
@@ -73,6 +77,14 @@
   function monthLabel(month) {
     const mm = monthOfYear(month);
     return mm || String(month || "");
+  }
+
+  function monthName(month) {
+    const m = String(month || "").match(/^(\d{4})-(\d{2})$/);
+    if (!m) return String(month || "");
+    const d = new Date(`${m[1]}-${m[2]}-01T00:00:00Z`);
+    if (Number.isNaN(d.getTime())) return String(month || "");
+    return new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(d);
   }
 
   function uniqueYearsFromMonths(months) {
@@ -173,13 +185,18 @@
     `;
   }
 
-  function svgBarChart({ labels, displayLabels, values, onClick }) {
+  function svgBarChart({ labels, displayLabels, values, onClick, formatY }) {
     const w = 900;
     const h = 180;
-    const pad = 26;
+    const padL = 58;
+    const padR = 18;
+    const padT = 26;
+    const padB = 24;
     const allZero = values.length > 0 && values.every((v) => v === 0);
     const max = Math.max(1, ...values);
-    const barW = Math.max(2, (w - pad * 2) / values.length - 2);
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+    const barW = Math.max(2, plotW / values.length - 2);
     const labelText = displayLabels && displayLabels.length === labels.length ? displayLabels : labels;
 
     const yearGroups = [];
@@ -195,24 +212,37 @@
     const yearBg = yearGroups.length > 1
       ? yearGroups
         .map((g, idx) => {
-          const x0 = pad + g.start * (barW + 2) - 2;
-          const x1 = pad + (g.end + 1) * (barW + 2);
+          const x0 = padL + g.start * (barW + 2) - 2;
+          const x1 = padL + (g.end + 1) * (barW + 2);
           const width = Math.max(0, x1 - x0);
           const fill = idx % 2 === 0 ? "rgba(148,163,184,0.06)" : "rgba(148,163,184,0.02)";
-          const labelX = Math.max(pad, x0 + 6);
+          const labelX = Math.max(padL, x0 + 6);
           return `
-            <rect x="${x0}" y="${pad - 10}" width="${width}" height="${h - pad - 6}" rx="10" fill="${fill}"></rect>
-            <text x="${labelX}" y="${pad - 2}" font-size="10" fill="#94a3b8">${g.year}</text>
+            <rect x="${x0}" y="${padT - 10}" width="${width}" height="${h - padT - 6}" rx="10" fill="${fill}"></rect>
+            <text x="${labelX}" y="${padT - 2}" font-size="10" fill="#94a3b8">${g.year}</text>
           `;
         })
         .join("")
       : "";
+
+    const yTickValues = [0, 0.25, 0.5, 0.75, 1].map((t) => t * max);
+    const yTicks = yTickValues
+      .map((v) => {
+        const y = padT + plotH - (plotH * v) / max;
+        const label = formatY ? formatY(v) : formatNumber(v);
+        return `
+          <line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(148,163,184,0.20)" stroke-width="1"></line>
+          <text x="${padL - 8}" y="${y + 3}" text-anchor="end" font-size="10" fill="#64748b">${label}</text>
+        `;
+      })
+      .join("");
+
     const bars = values
       .map((v, i) => {
-        const x = pad + i * (barW + 2);
-        const bh = Math.round(((h - pad * 2) * v) / max);
-        const y = h - pad - bh;
-        const title = `${labels[i]}: ${v}`;
+        const x = padL + i * (barW + 2);
+        const bh = Math.round((plotH * v) / max);
+        const y = padT + plotH - bh;
+        const title = `${monthName(labels[i])}: ${formatY ? formatY(v) : formatNumber(v)}`;
         return `<g class="bar" data-i="${i}">
           <title>${title}</title>
           <rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="3" fill="rgba(25,127,230,.75)"></rect>
@@ -221,12 +251,13 @@
       .join("");
     const step = labelText.length <= 12 ? 1 : labelText.length <= 24 ? 2 : Math.ceil(labelText.length / 10);
     const ticks = labelText
-      .map((l, i) => (i % step === 0 ? `<text x="${pad + i * (barW + 2)}" y="${h - 6}" font-size="10" fill="#64748b">${l}</text>` : ""))
+      .map((l, i) => (i % step === 0 ? `<text x="${padL + i * (barW + 2)}" y="${h - 6}" font-size="10" fill="#64748b">${l}</text>` : ""))
       .join("");
     const svg = `
       <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
         <rect x="0" y="0" width="${w}" height="${h}" rx="12" fill="#ffffff" stroke="#e2e8f0"></rect>
         ${yearBg}
+        ${yTicks}
         ${bars}
         ${allZero
         ? `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="12" fill="#64748b">All values are 0</text>`
@@ -282,6 +313,7 @@
         labels,
         displayLabels,
         values: totals,
+        formatY: (v) => formatInt(Math.round(v)),
         onClick: (i) => navigate(`/month/${labels[i]}`),
       })
     );
@@ -301,6 +333,7 @@
         labels,
         displayLabels,
         values: rates.map((x) => Math.round(x * 1000) / 1000),
+        formatY: (v) => formatNumber(v, 3),
         onClick: (i) => navigate(`/month/${labels[i]}`),
       })
     );
@@ -415,7 +448,11 @@
       const x = pad + i * barW + 1;
       const bh = Math.round(((h - pad * 2) * v) / max);
       const y = h - pad - bh;
-      return `<rect x="${x}" y="${y}" width="${Math.max(1, barW - 2)}" height="${bh}" rx="2" fill="rgba(25,127,230,.72)"></rect>`;
+      const hr = String(i).padStart(2, "0");
+      return `<g class="bar">
+        <title>${hr}:00</title>
+        <rect x="${x}" y="${y}" width="${Math.max(1, barW - 2)}" height="${bh}" rx="2" fill="rgba(25,127,230,.72)"></rect>
+      </g>`;
     }).join("");
     const tickHours = [0, 6, 12, 18, 23];
     const ticks = tickHours.map((hr) => {
