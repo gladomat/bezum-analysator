@@ -27,6 +27,21 @@ def test_analyze_minimal(tmp_path: Path):
     assert len(lines) == 3  # header + 2 events
 
 
+def test_analyze_accepts_message_field_as_text(tmp_path: Path):
+    data = [
+        {"id": 1, "date": "2024-01-01T10:00:00Z", "message": "2k am hbf"},
+        {"id": 2, "date": "2024-01-01T11:00:00Z", "message": "nope"},
+    ]
+    export_path = tmp_path / "export.json"
+    export_path.write_text(json.dumps(data), encoding="utf-8")
+
+    analyze_export(export_path, tmp_path)
+
+    events_path = tmp_path / "derived" / "events.csv"
+    lines = events_path.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 2  # header + 1 event
+
+
 def _parse_zulu(value: str) -> datetime:
     """Parse an ISO-8601 timestamp with trailing Z."""
     return datetime.fromisoformat(value.replace("Z", "+00:00"))

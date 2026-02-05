@@ -155,7 +155,7 @@ def analyze_export(
 
         sender_key = extract_sender_key(message)
 
-        raw_text = message.get("text") if isinstance(message, dict) else None
+        raw_text = extract_text_value(message)
         raw_caption = message.get("caption") if isinstance(message, dict) else None
 
         normalized_text, normalized_caption = normalize_message_text(
@@ -442,6 +442,19 @@ def extract_sender_key(message: Dict[str, Any]) -> str | None:
 def extract_timestamp_value(message: Dict[str, Any]) -> Any:
     """Extract a timestamp value from known fields."""
     for key in ("date", "timestamp", "date_utc", "time", "created_at"):
+        if key in message:
+            return message.get(key)
+    return None
+
+
+def extract_text_value(message: Dict[str, Any]) -> Any:
+    """Extract a message text value from known fields.
+
+    Telegram export formats vary:
+    - Telegram Desktop exports often use `text` (string or structured list).
+    - Telethon / other exporters commonly use `message`.
+    """
+    for key in ("text", "message", "content", "body"):
         if key in message:
             return message.get(key)
     return None
