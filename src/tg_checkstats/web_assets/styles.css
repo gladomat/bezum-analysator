@@ -59,6 +59,25 @@ select{
   background:#fff; font-size:12px;
 }
 
+.iconbtn{
+  border:1px solid var(--border);
+  background:#fff;
+  border-radius:10px;
+  padding:6px 10px;
+  font-size:12px;
+  line-height:1;
+  color:#334155;
+  cursor:pointer;
+}
+.iconbtn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+.iconbtn:hover:not(:disabled){
+  border-color: rgba(25,127,230,.35);
+}
+.navarrows{ display:flex; gap:8px; align-items:center; }
+
 .content{ flex:1; overflow:auto; padding:22px; display:flex; flex-direction:column; gap:16px; }
 .card{
   background:var(--card); border:1px solid #eef2f7; border-radius:var(--radius);
@@ -95,6 +114,8 @@ select{
 .daycard__sub{ color:var(--muted); font-size:12px; margin-bottom:10px; }
 .svg{ width:100%; height:120px; }
 
+.bar:hover rect{ filter: brightness(0.96); }
+.bar:hover rect{ stroke: rgba(25,127,230,.35); stroke-width: 1; }
+
 .error{ border:1px solid #fecaca; background:#fff1f2; color:#7f1d1d; }
 .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-
