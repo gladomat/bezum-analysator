@@ -201,10 +201,10 @@
   function svgBarChart({ labels, displayLabels, values, onClick, formatY }) {
     const w = 900;
     const h = 180;
-    const padL = 58;
+    const padL = 72;
     const padR = 18;
     const padT = 26;
-    const padB = 24;
+    const padB = 30;
     const allZero = values.length > 0 && values.every((v) => v === 0);
     const max = Math.max(1, ...values);
     const plotW = w - padL - padR;
@@ -232,7 +232,7 @@
           const labelX = Math.max(padL, x0 + 6);
           return `
             <rect x="${x0}" y="${padT - 10}" width="${width}" height="${h - padT - 6}" rx="10" fill="${fill}"></rect>
-            <text x="${labelX}" y="${padT - 2}" font-size="10" fill="#94a3b8">${g.year}</text>
+            <text x="${labelX}" y="${padT - 2}" font-size="12" fill="#94a3b8">${g.year}</text>
           `;
         })
         .join("")
@@ -245,7 +245,7 @@
         const label = formatY ? formatY(v) : formatNumber(v);
         return `
           <line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(148,163,184,0.20)" stroke-width="1"></line>
-          <text x="${padL - 8}" y="${y + 3}" text-anchor="end" font-size="10" fill="#64748b">${label}</text>
+          <text x="${padL - 10}" y="${y + 4}" text-anchor="end" font-size="12" fill="#64748b">${label}</text>
         `;
       })
       .join("");
@@ -264,7 +264,7 @@
       .join("");
     const step = labelText.length <= 12 ? 1 : labelText.length <= 24 ? 2 : Math.ceil(labelText.length / 10);
     const ticks = labelText
-      .map((l, i) => (i % step === 0 ? `<text x="${padL + i * (barW + 2)}" y="${h - 6}" font-size="10" fill="#64748b">${l}</text>` : ""))
+      .map((l, i) => (i % step === 0 ? `<text x="${padL + i * (barW + 2)}" y="${h - 6}" font-size="12" fill="#64748b">${l}</text>` : ""))
       .join("");
     const svg = `
       <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
@@ -273,7 +273,7 @@
         ${yTicks}
         ${bars}
         ${allZero
-        ? `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="12" fill="#64748b">All values are 0</text>`
+        ? `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="14" fill="#64748b">All values are 0</text>`
         : ""
       }
         ${ticks}
@@ -496,7 +496,7 @@
     const ticks = tickHours.map((hr) => {
       const x = pad + hr * barW + barW / 2;
       const label = String(hr).padStart(2, "0");
-      return `<text x="${x}" y="${h - 6}" text-anchor="middle" font-size="10" fill="#64748b">${label}</text>`;
+      return `<text x="${x}" y="${h - 6}" text-anchor="middle" font-size="12" fill="#64748b">${label}</text>`;
     }).join("");
     return `
       <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">

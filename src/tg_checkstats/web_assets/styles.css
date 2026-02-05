@@ -102,8 +102,8 @@ select{
   background:#fff;
 }
 .tile.is-out{ opacity:.45; }
-.tile__d{ font-size:12px; color:var(--muted); }
-.tile__v{ font-size:14px; font-weight:800; }
+.tile__d{ font-size:13px; color:var(--muted); }
+.tile__v{ font-size:16px; font-weight:800; }
 .tile.is-clickable{ cursor:pointer; }
 .tile.is-clickable:hover{ border-color: rgba(25,127,230,.35); }
 
@@ -111,8 +111,8 @@ select{
 @media (max-width: 980px){ .days{ grid-template-columns: 1fr; } }
 .daycard{ border:1px solid var(--border); border-radius:14px; padding:12px; background:#fff; }
 .daycard__title{ font-weight:800; margin-bottom:2px; }
-.daycard__sub{ color:var(--muted); font-size:12px; margin-bottom:10px; }
-.svg{ width:100%; height:120px; }
+.daycard__sub{ color:var(--muted); font-size:13px; margin-bottom:10px; }
+.svg{ width:100%; height:140px; }
 
 .bar:hover rect{ filter: brightness(0.96); }
 .bar:hover rect{ stroke: rgba(25,127,230,.35); stroke-width: 1; }
