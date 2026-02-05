@@ -332,6 +332,43 @@ a {
   height: 16px;
 }
 
+.file-input {
+  display: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn:hover {
+  border-color: var(--border-hover);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 /* Content */
 .content {
   flex: 1;

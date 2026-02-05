@@ -17,7 +17,11 @@
       nav_month: "Monat",
       nav_week: "Woche",
       hint_title: "Lokale UI",
-      hint_text: "Nur lesend, nutzt abgeleitete UI-Artefakte.",
+      hint_text: "Lokal, kann Exporte hochladen und neue Runs analysieren.",
+      label_upload: "Upload",
+      upload_btn: "Export auswählen",
+      upload_running: "Analysiere…",
+      upload_done: "Upload fertig",
       label_metric: "Metrik",
       label_year: "Jahr",
       label_lang: "Sprache",
@@ -73,7 +77,11 @@
       nav_month: "Month",
       nav_week: "Week",
       hint_title: "Local UI",
-      hint_text: "Read-only, uses derived UI artifacts.",
+      hint_text: "Local UI; can upload exports and analyze new runs.",
+      label_upload: "Upload",
+      upload_btn: "Choose export",
+      upload_running: "Analyzing…",
+      upload_done: "Upload done",
       label_metric: "Metric",
       label_year: "Year",
       label_lang: "Language",
@@ -333,6 +341,81 @@
       if (!r.ok) throw Object.assign(new Error("API error"), { status: r.status, data });
       return data;
     });
+  }
+
+  async function loadRunData({ preserveYear = true } = {}) {
+    const previousYear = preserveYear ? state.year : null;
+
+    state.run = await api("/api/run");
+    if (!state.run.missing_files || state.run.missing_files.length === 0) {
+      state.months = await api("/api/months");
+      state.months = state.months.map((r) => ({
+        ...r,
+        month_check_message_count: +r.month_check_message_count,
+        month_check_event_count: +r.month_check_event_count,
+        messages_per_day_in_range: +r.messages_per_day_in_range,
+        events_per_day_in_range: +r.events_per_day_in_range,
+      }));
+    } else {
+      state.months = null;
+    }
+
+    const years = uniqueYearsFromMonths(state.months || []);
+    state.availableYears = years;
+
+    const nextYear = (() => {
+      const fromUrl = parseYearFromLocation();
+      if (fromUrl && years.includes(fromUrl)) return fromUrl;
+      if (previousYear && years.includes(previousYear)) return previousYear;
+      const stored = state.year && years.includes(state.year) ? state.year : null;
+      if (stored) return stored;
+      const end = state.run && state.run.dataset && state.run.dataset.end_date;
+      const endYear = typeof end === "string" ? end.slice(0, 4) : null;
+      if (endYear && years.includes(endYear)) return endYear;
+      return years.length ? years[years.length - 1] : null;
+    })();
+
+    state.year = nextYear;
+    localStorage.setItem("tg-checkstats.year", state.year || "");
+    if (state.year) setYearInLocation(state.year);
+    else setYearInLocation(null);
+
+    renderYearSelectOptions();
+    applyI18n();
+
+    if (state.run && state.run.dataset && state.run.dataset.start_date && state.run.dataset.end_date) {
+      state.weeks = buildWeeksInRange(state.run.dataset.start_date, state.run.dataset.end_date);
+    } else {
+      state.weeks = [];
+    }
+  }
+
+  async function uploadExportFile(file) {
+    if (!file) return;
+    if (!$("uploadBtn") || !$("uploadFile")) return;
+
+    $("uploadBtn").classList.add("is-disabled");
+    setMetaPill(t("upload_running"));
+    try {
+      const body = await file.arrayBuffer();
+      const r = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/octet-stream",
+        },
+        body,
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw Object.assign(new Error("Upload failed"), { status: r.status, data });
+
+      await loadRunData({ preserveYear: false });
+      setMetaPill(t("upload_done"));
+      navigate("/");
+    } finally {
+      $("uploadBtn").classList.remove("is-disabled");
+      $("uploadFile").value = "";
+    }
   }
 
   function yearFromMonth(month) {
@@ -962,37 +1045,17 @@
       render();
     });
 
-    state.run = await api("/api/run");
-    if (!state.run.missing_files || state.run.missing_files.length === 0) {
-      state.months = await api("/api/months");
-      // Ensure numeric keys are numbers (api already returns numbers, but keep robust)
-      state.months = state.months.map((r) => ({
-        ...r,
-        month_check_message_count: +r.month_check_message_count,
-        month_check_event_count: +r.month_check_event_count,
-        messages_per_day_in_range: +r.messages_per_day_in_range,
-        events_per_day_in_range: +r.events_per_day_in_range,
-      }));
+    if ($("uploadFile")) {
+      $("uploadFile").addEventListener("change", () => {
+        const file = $("uploadFile").files && $("uploadFile").files[0];
+        uploadExportFile(file).catch((err) => {
+          console.error(err);
+          setMetaPill(t("meta_error"));
+        });
+      });
     }
 
-    const years = uniqueYearsFromMonths(state.months || []);
-    state.availableYears = years;
-    const defaultYear = (() => {
-      const fromUrl = parseYearFromLocation();
-      if (fromUrl && years.includes(fromUrl)) return fromUrl;
-      const stored = state.year && years.includes(state.year) ? state.year : null;
-      if (stored) return stored;
-      const end = state.run && state.run.dataset && state.run.dataset.end_date;
-      const endYear = typeof end === "string" ? end.slice(0, 4) : null;
-      if (endYear && years.includes(endYear)) return endYear;
-      return years.length ? years[years.length - 1] : null;
-    })();
-
-    state.year = defaultYear;
-    localStorage.setItem("tg-checkstats.year", state.year || "");
-    if (state.year) setYearInLocation(state.year);
-
-    renderYearSelectOptions();
+    await loadRunData({ preserveYear: true });
     $("year").addEventListener("change", () => {
       const v = $("year").value || "";
       state.year = v && /^\d{4}$/.test(v) ? v : null;
@@ -1010,12 +1073,6 @@
       }
       render();
     });
-
-    if (state.run && state.run.dataset && state.run.dataset.start_date && state.run.dataset.end_date) {
-      state.weeks = buildWeeksInRange(state.run.dataset.start_date, state.run.dataset.end_date);
-    } else {
-      state.weeks = [];
-    }
 
     window.addEventListener("popstate", render);
 
