@@ -89,6 +89,13 @@
     return grid;
   }
 
+  function renderPosteriorSection({ title, labels, topLabels, rows, cols }) {
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<div class="probtitle">${title || "Posterior probability of being checked"}</div>`;
+    wrap.appendChild(renderPosteriorGrid({ labels, topLabels, rows, cols }));
+    return wrap;
+  }
+
   function metricLabel(metric) {
     return metric === "check_event_count" ? "Events" : "Messages";
   }
@@ -382,7 +389,8 @@
         })
       );
       block.appendChild(
-        renderPosteriorGrid({
+        renderPosteriorSection({
+          title: "Posterior probability of being checked",
           labels,
           topLabels: labels.map(monthLabel),
           rows: months,
@@ -418,7 +426,8 @@
         })
       );
       block.appendChild(
-        renderPosteriorGrid({
+        renderPosteriorSection({
+          title: "Posterior probability of being checked",
           labels,
           topLabels: labels.map(monthLabel),
           rows: months,
@@ -521,7 +530,8 @@
       svgBarChart({ labels, values, onClick: () => { } })
     );
     statsCard.appendChild(
-      renderPosteriorGrid({
+      renderPosteriorSection({
+        title: "Posterior probability of being checked",
         labels,
         rows: payload.weekday_stats,
         cols: 7,

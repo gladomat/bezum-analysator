@@ -122,6 +122,11 @@ select{
   gap:6px;
   margin-top:10px;
 }
+.probtitle{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+}
 .probcell{
   border:1px solid var(--border);
   background:#f8fafc;
