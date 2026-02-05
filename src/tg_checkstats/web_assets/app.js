@@ -138,7 +138,7 @@
 
       const subtitle = has
         ? `${formatHH00FromHour(start)}–${formatHH00FromHour(end)} • μ ${formatHHMMFromHour(mean)} ± ${Math.round(sdMin)}m`
-        : "—";
+        : "no checks (n=0)";
 
       const title = has
         ? `Weighted by hourly check_event_count\np10–p90: ${formatHH00FromHour(start)}–${formatHH00FromHour(end)}\nmean: ${formatHHMMFromHour(mean)}\nσ: ${Math.round(sdMin)} minutes\nn=${total} events`

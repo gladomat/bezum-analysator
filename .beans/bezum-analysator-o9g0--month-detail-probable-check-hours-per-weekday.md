@@ -21,3 +21,6 @@ Definition:
 - [x] Add UI bar plot rendering
 - [x] Add tests for window/mean/sd calculations
 - [x] Verify UI loads + run tests
+
+Follow-up:
+- [x] Clarify empty ranges when n=0
