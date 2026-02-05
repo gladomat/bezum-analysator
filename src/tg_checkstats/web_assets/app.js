@@ -113,10 +113,36 @@
     return out;
   }
 
+  function isoWeekInfo(dateStr) {
+    const d = new Date(`${dateStr}T00:00:00Z`);
+    if (Number.isNaN(d.getTime())) return { isoYear: null, isoWeek: null };
+
+    const target = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    // ISO week starts Monday. Convert Sun..Sat => 6..5, so Mon=0..Sun=6.
+    const weekday = (target.getUTCDay() + 6) % 7;
+    // Move to Thursday in this week to determine ISO year.
+    target.setUTCDate(target.getUTCDate() - weekday + 3);
+    const isoYear = target.getUTCFullYear();
+
+    // First Thursday of ISO year determines week 1.
+    const firstThursday = new Date(Date.UTC(isoYear, 0, 4));
+    const firstWeekday = (firstThursday.getUTCDay() + 6) % 7;
+    firstThursday.setUTCDate(firstThursday.getUTCDate() - firstWeekday + 3);
+
+    const week = 1 + Math.round((target.getTime() - firstThursday.getTime()) / 604800000);
+    return { isoYear, isoWeek: week };
+  }
+
+  function isoWeekLabelForStartDate(weekStartDate) {
+    const { isoWeek } = isoWeekInfo(weekStartDate);
+    if (!isoWeek) return `Week ?? • ${weekStartDate}`;
+    return `Week ${String(isoWeek).padStart(2, "0")} • ${weekStartDate}`;
+  }
+
   function filteredWeeks() {
     if (!state.weeks) return [];
     if (!state.year) return state.weeks;
-    return state.weeks.filter((w) => String(w).startsWith(`${state.year}-`));
+    return state.weeks.filter((w) => String(isoWeekInfo(w).isoYear) === state.year);
   }
 
   function defaultWeekForYear() {
@@ -335,7 +361,7 @@
     payload.weeks.forEach((w) => {
       const weekLabel = document.createElement("div");
       weekLabel.className = "heatmap__week";
-      weekLabel.innerHTML = `<a href="/week/${w}" class="mono">${w}</a>`;
+      weekLabel.innerHTML = `<a href="/week/${w}" class="mono">${isoWeekLabelForStartDate(w)}</a>`;
       weekLabel.querySelector("a").addEventListener("click", (e) => {
         e.preventDefault();
         navigate(`/week/${w}`);
@@ -391,17 +417,24 @@
       const y = h - pad - bh;
       return `<rect x="${x}" y="${y}" width="${Math.max(1, barW - 2)}" height="${bh}" rx="2" fill="rgba(25,127,230,.72)"></rect>`;
     }).join("");
+    const tickHours = [0, 6, 12, 18, 23];
+    const ticks = tickHours.map((hr) => {
+      const x = pad + hr * barW + barW / 2;
+      const label = String(hr).padStart(2, "0");
+      return `<text x="${x}" y="${h - 6}" text-anchor="middle" font-size="10" fill="#64748b">${label}</text>`;
+    }).join("");
     return `
       <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
         <rect x="0" y="0" width="${w}" height="${h}" rx="12" fill="#ffffff" stroke="#e2e8f0"></rect>
         ${bars}
+        ${ticks}
       </svg>
     `;
   }
 
   function renderWeek(payload) {
     setActiveNav("week");
-    setCrumbs([{ text: state.run.run_id, bold: false }, { text: `week ${payload.week_start_date}`, bold: true }]);
+    setCrumbs([{ text: state.run.run_id, bold: false }, { text: isoWeekLabelForStartDate(payload.week_start_date), bold: true }]);
     setMetaPill(`${state.run.timezone || "Europe/Berlin"} • ${metricLabel(state.metric)}`);
 
     const metric = state.metric;
@@ -418,7 +451,7 @@
           <button class="iconbtn" id="nextWeek" ${nextWeek ? "" : "disabled"} title="Next week">→</button>
         </div>
         <div style="flex:1">
-          <div class="card__title">Week ${payload.week_start_date}</div>
+          <div class="card__title">${isoWeekLabelForStartDate(payload.week_start_date)}</div>
           <div class="card__sub">7 day panels, each with 24 hourly bins.</div>
         </div>
       </div>
