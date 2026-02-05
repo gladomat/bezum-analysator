@@ -53,6 +53,7 @@ class UiArtifacts:
         self.day_hours_by_date = self._load_day_hour_counts()
         self.month_weekday_stats = self._load_month_weekday_stats()
         self.month_posteriors, self.month_weekday_posteriors = self._compute_posteriors()
+        self.month_weekday_time_windows = self._compute_month_weekday_time_windows()
 
     def _read_metadata(self) -> Mapping[str, object]:
         """Read run metadata JSON."""
@@ -237,7 +238,8 @@ class UiArtifacts:
         for stat in self.month_weekday_stats.get(month, []):
             key = (month, int(stat.get("weekday_idx", 0)))
             posterior = self.month_weekday_posteriors.get(key)
-            weekday_stats.append({**stat, **_posterior_payload(posterior)})
+            window = self.month_weekday_time_windows.get(key)
+            weekday_stats.append({**stat, **_posterior_payload(posterior), **_time_window_payload(window)})
         return {
             "month": month,
             "weeks": weeks,
@@ -298,6 +300,36 @@ class UiArtifacts:
 
         return month_posteriors, month_weekday_posteriors
 
+    def _compute_month_weekday_time_windows(self) -> dict[tuple[str, int], dict]:
+        """Compute per-(month,weekday) hourly "probable check window" summaries.
+
+        This uses the hourly event counts derived by the analyzer (`derived/ui/day_hour_counts.csv`).
+        For each (month, weekday_idx), we build a weighted hour distribution with weights:
+          w_h = sum(check_event_count for that hour across all matching days)
+
+        We then compute:
+        - p10 and p90 hours (discrete, hour bins)
+        - weighted mean hour
+        - weighted SD in minutes
+        """
+        hour_weights: dict[tuple[str, int], list[int]] = {}
+        for day_str, row in self.days_by_date.items():
+            month = str(row.get("month") or "")
+            if not month:
+                continue
+            weekday_idx = int(row.get("weekday_idx") or 0)
+            key = (month, weekday_idx)
+            weights = hour_weights.setdefault(key, [0] * 24)
+            sparse = self.day_hours_by_date.get(day_str, {})
+            for hour in range(24):
+                _, evt = sparse.get(hour, (0, 0))
+                weights[hour] += int(evt)
+
+        out: dict[tuple[str, int], dict] = {}
+        for key, weights in hour_weights.items():
+            out[key] = _weighted_hour_window(weights, q_low=0.10, q_high=0.90)
+        return out
+
 
 def _posterior_payload(posterior: BetaPosteriorSummary | None) -> dict:
     """Serialize posterior summary into JSON-friendly fields."""
@@ -315,4 +347,67 @@ def _posterior_payload(posterior: BetaPosteriorSummary | None) -> dict:
         "posterior_check_prob_high": posterior.ci_high,
         "posterior_trials": posterior.trials,
         "posterior_successes": posterior.successes,
+    }
+
+
+def _time_window_payload(window: dict | None) -> dict:
+    """Serialize a time window summary into JSON-friendly fields."""
+    if not window:
+        return {
+            "probable_check_total_events": 0,
+            "probable_check_start_hour_p10": None,
+            "probable_check_end_hour_p90": None,
+            "probable_check_mean_hour": None,
+            "probable_check_sd_minutes": None,
+        }
+    return dict(window)
+
+
+def _weighted_hour_window(weights: list[int], *, q_low: float, q_high: float) -> dict:
+    """Compute discrete weighted quantiles + mean + SD for hour-of-day bins.
+
+    Args:
+        weights: Length-24 list where index=hour and value=weight (>=0).
+        q_low: Lower quantile in [0,1].
+        q_high: Upper quantile in [0,1].
+
+    Returns:
+        Dict containing `probable_check_*` fields.
+    """
+    if len(weights) != 24:
+        raise ValueError("weights must have length 24")
+    total = sum(int(w) for w in weights)
+    if total <= 0:
+        return {
+            "probable_check_total_events": 0,
+            "probable_check_start_hour_p10": None,
+            "probable_check_end_hour_p90": None,
+            "probable_check_mean_hour": None,
+            "probable_check_sd_minutes": None,
+        }
+
+    def quantile(q: float) -> int:
+        threshold = q * total
+        cum = 0
+        for hour, w in enumerate(weights):
+            cum += int(w)
+            if cum >= threshold:
+                return hour
+        return 23
+
+    start_hour = quantile(q_low)
+    end_hour = quantile(q_high)
+
+    mean_hour = sum(hour * int(w) for hour, w in enumerate(weights)) / total
+    mean_sq = sum((hour * hour) * int(w) for hour, w in enumerate(weights)) / total
+    var = max(0.0, mean_sq - mean_hour * mean_hour)
+    sd_hours = var ** 0.5
+    sd_minutes = sd_hours * 60.0
+
+    return {
+        "probable_check_total_events": int(total),
+        "probable_check_start_hour_p10": int(start_hour),
+        "probable_check_end_hour_p90": int(end_hour),
+        "probable_check_mean_hour": float(mean_hour),
+        "probable_check_sd_minutes": float(sd_minutes),
     }

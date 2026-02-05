@@ -57,6 +57,19 @@
     return `${Math.round(p * 100)}%`;
   }
 
+  function formatHHMMFromHour(hourFloat) {
+    if (hourFloat == null || Number.isNaN(+hourFloat)) return "—";
+    const totalMinutes = Math.round(+hourFloat * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+
+  function formatHH00FromHour(hourInt) {
+    if (hourInt == null || Number.isNaN(+hourInt)) return "—";
+    return `${String(parseInt(hourInt, 10)).padStart(2, "0")}:00`;
+  }
+
   function posteriorTitle(row) {
     if (!row) return "";
     const mean = row.posterior_check_prob_mean;
@@ -93,6 +106,58 @@
     const wrap = document.createElement("div");
     wrap.innerHTML = `<div class="probtitle">${title || "Posterior probability of being checked"}</div>`;
     wrap.appendChild(renderPosteriorGrid({ labels, topLabels, rows, cols }));
+    return wrap;
+  }
+
+  function renderWeekdayTimeWindows(weekdayStats) {
+    const wrap = document.createElement("div");
+    wrap.className = "timewins";
+    wrap.innerHTML = `
+      <div class="probtitle">Probable checking hours (p10–p90, mean ± σ)</div>
+      <div class="timewins__axis">
+        <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
+      </div>
+      <div class="timewins__rows"></div>
+    `;
+    const rowsEl = wrap.querySelector(".timewins__rows");
+
+    (weekdayStats || []).forEach((s) => {
+      const start = s.probable_check_start_hour_p10;
+      const end = s.probable_check_end_hour_p90;
+      const mean = s.probable_check_mean_hour;
+      const sdMin = s.probable_check_sd_minutes;
+      const total = s.probable_check_total_events;
+
+      const has = start != null && end != null && mean != null && sdMin != null && total > 0;
+      const startPct = has ? (start / 24) * 100 : 0;
+      const endPct = has ? ((end + 1) / 24) * 100 : 0; // end is an hour-bin; extend to end of bin
+      const meanPct = has ? (mean / 24) * 100 : 0;
+      const sdHours = has ? sdMin / 60.0 : 0;
+      const sdLoPct = has ? (Math.max(0, mean - sdHours) / 24) * 100 : 0;
+      const sdHiPct = has ? (Math.min(24, mean + sdHours) / 24) * 100 : 0;
+
+      const subtitle = has
+        ? `${formatHH00FromHour(start)}–${formatHH00FromHour(end)} • μ ${formatHHMMFromHour(mean)} ± ${Math.round(sdMin)}m`
+        : "—";
+
+      const title = has
+        ? `Weighted by hourly check_event_count\np10–p90: ${formatHH00FromHour(start)}–${formatHH00FromHour(end)}\nmean: ${formatHHMMFromHour(mean)}\nσ: ${Math.round(sdMin)} minutes\nn=${total} events`
+        : "No hourly check events in this month/weekday.";
+
+      const row = document.createElement("div");
+      row.className = "timewins__row";
+      row.innerHTML = `
+        <div class="timewins__label">${s.weekday}</div>
+        <div class="timewins__bar" title="${title.replace(/\"/g, "&quot;")}">
+          ${has ? `<div class="timewins__fill" style="left:${startPct}%;width:${Math.max(0, endPct - startPct)}%"></div>` : ""}
+          ${has ? `<div class="timewins__sd" style="left:${sdLoPct}%;width:${Math.max(0, sdHiPct - sdLoPct)}%"></div>` : ""}
+          ${has ? `<div class="timewins__mean" style="left:${meanPct}%"></div>` : ""}
+        </div>
+        <div class="timewins__text">${subtitle}</div>
+      `;
+      rowsEl.appendChild(row);
+    });
+
     return wrap;
   }
 
@@ -537,6 +602,7 @@
         cols: 7,
       })
     );
+    statsCard.appendChild(renderWeekdayTimeWindows(payload.weekday_stats));
 
     $("content").innerHTML = "";
     $("content").appendChild(card);

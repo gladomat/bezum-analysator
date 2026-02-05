@@ -68,8 +68,9 @@ def test_week_api_payload_has_7_days_and_24_bins(tmp_path: Path) -> None:
 
 def test_month_api_payload_contains_week_grid(tmp_path: Path) -> None:
     data = [
-        {"id": 1, "date": "2024-01-01T10:00:00Z", "text": "2k"},
-        {"id": 2, "date": "2024-01-10T08:00:00Z", "text": "Kontis"},
+        {"id": 1, "date": "2024-01-01T00:00:00Z", "text": "2k"},
+        {"id": 2, "date": "2024-01-01T12:00:00Z", "text": "2k"},
+        {"id": 3, "date": "2024-01-10T08:00:00Z", "text": "Kontis"},
     ]
     export_path = tmp_path / "export.json"
     export_path.write_text(json.dumps(data), encoding="utf-8")
@@ -97,6 +98,13 @@ def test_month_api_payload_contains_week_grid(tmp_path: Path) -> None:
         "posterior_trials",
         "posterior_successes",
     }.issubset(stat.keys())
+
+    monday = next((s for s in payload["weekday_stats"] if int(s["weekday_idx"]) == 0), None)
+    assert monday is not None
+    assert monday["probable_check_start_hour_p10"] == 1
+    assert monday["probable_check_end_hour_p90"] == 13
+    assert abs(float(monday["probable_check_mean_hour"]) - 7.0) < 1e-6
+    assert abs(float(monday["probable_check_sd_minutes"]) - 360.0) < 1e-6
 
 
 def test_months_api_payload_contains_posterior_fields(tmp_path: Path) -> None:
