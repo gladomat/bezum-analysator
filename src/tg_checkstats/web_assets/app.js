@@ -30,6 +30,14 @@
     return url.pathname + url.search;
   }
 
+  function urlWithExplicitYear(path, year) {
+    const y = year && /^\d{4}$/.test(String(year)) ? String(year) : null;
+    if (!y) return path;
+    const url = new URL(path, window.location.origin);
+    url.searchParams.set("year", y);
+    return url.pathname + url.search;
+  }
+
   function setActiveNav(route) {
     document.querySelectorAll(".nav__item").forEach((a) => a.classList.remove("is-active"));
     const link = document.querySelector(`.nav__item[data-nav="${route}"]`);
@@ -149,6 +157,11 @@
     const { isoWeek } = isoWeekInfo(weekStartDate);
     if (!isoWeek) return `Week ?? • ${weekStartDate}`;
     return `Week ${String(isoWeek).padStart(2, "0")} • ${weekStartDate}`;
+  }
+
+  function isoYearForWeekStartDate(weekStartDate) {
+    const { isoYear } = isoWeekInfo(weekStartDate);
+    return isoYear ? String(isoYear) : null;
   }
 
   function filteredWeeks() {
@@ -282,8 +295,8 @@
     setMetaPill(`${state.run.timezone || "Europe/Berlin"} • Data loaded`);
 
     const metric = state.metric;
-    const months = filteredMonthRows();
-    if (!months.length) {
+    const allMonths = state.months || [];
+    if (!allMonths.length) {
       $("content").innerHTML = `
         <div class="card">
           <div class="card__title">No data for selection</div>
@@ -292,10 +305,17 @@
       `;
       return;
     }
-    const labels = months.map((r) => r.month);
-    const displayLabels = state.year ? labels.map(monthLabel) : labels;
-    const totals = months.map((r) => getMonthTotalRow(r, metric));
-    const rates = months.map((r) => getMonthRateRow(r, metric));
+
+    const availableYears = uniqueYearsFromMonths(allMonths);
+    const baseYear = state.year && availableYears.includes(state.year) ? state.year : availableYears[availableYears.length - 1];
+    const baseYearNum = parseInt(baseYear, 10);
+    const yearsToShow = [];
+    for (let i = 0; i < 3; i++) {
+      const y = String(baseYearNum - i);
+      if (availableYears.includes(y)) yearsToShow.push(y);
+    }
+
+    const rowsForYear = (year) => allMonths.filter((r) => yearFromMonth(r.month) === year);
 
     const totalCard = document.createElement("div");
     totalCard.className = "card";
@@ -308,15 +328,24 @@
         <div class="row__right">Click a bar to open month detail</div>
       </div>
     `;
-    totalCard.appendChild(
-      svgBarChart({
-        labels,
-        displayLabels,
-        values: totals,
-        formatY: (v) => formatInt(Math.round(v)),
-        onClick: (i) => navigate(`/month/${labels[i]}`),
-      })
-    );
+
+    yearsToShow.forEach((year) => {
+      const months = rowsForYear(year);
+      const labels = months.map((r) => r.month);
+      const values = months.map((r) => getMonthTotalRow(r, metric));
+      const block = document.createElement("div");
+      block.innerHTML = `<div class="card__title" style="margin-top:8px;font-size:14px">${year}</div>`;
+      block.appendChild(
+        svgBarChart({
+          labels,
+          displayLabels: labels.map(monthLabel),
+          values,
+          formatY: (v) => formatInt(Math.round(v)),
+          onClick: (i) => navigateWithYear(`/month/${labels[i]}`, yearFromMonth(labels[i])),
+        })
+      );
+      totalCard.appendChild(block);
+    });
 
     const rateCard = document.createElement("div");
     rateCard.className = "card";
@@ -328,15 +357,24 @@
         </div>
       </div>
     `;
-    rateCard.appendChild(
-      svgBarChart({
-        labels,
-        displayLabels,
-        values: rates.map((x) => Math.round(x * 1000) / 1000),
-        formatY: (v) => formatNumber(v, 3),
-        onClick: (i) => navigate(`/month/${labels[i]}`),
-      })
-    );
+
+    yearsToShow.forEach((year) => {
+      const months = rowsForYear(year);
+      const labels = months.map((r) => r.month);
+      const values = months.map((r) => getMonthRateRow(r, metric)).map((x) => Math.round(x * 1000) / 1000);
+      const block = document.createElement("div");
+      block.innerHTML = `<div class="card__title" style="margin-top:8px;font-size:14px">${year}</div>`;
+      block.appendChild(
+        svgBarChart({
+          labels,
+          displayLabels: labels.map(monthLabel),
+          values,
+          formatY: (v) => formatNumber(v, 3),
+          onClick: (i) => navigateWithYear(`/month/${labels[i]}`, yearFromMonth(labels[i])),
+        })
+      );
+      rateCard.appendChild(block);
+    });
 
     $("content").innerHTML = `<div class="grid"></div>`;
     const grid = document.querySelector(".grid");
@@ -397,7 +435,7 @@
       weekLabel.innerHTML = `<a href="/week/${w}" class="mono">${isoWeekLabelForStartDate(w)}</a>`;
       weekLabel.querySelector("a").addEventListener("click", (e) => {
         e.preventDefault();
-        navigate(`/week/${w}`);
+        navigateWithYear(`/week/${w}`, isoYearForWeekStartDate(w));
       });
       heat.appendChild(weekLabel);
 
@@ -412,7 +450,7 @@
         if (c.in_month) {
           tile.addEventListener("click", () => {
             // Find the week start for this day (already known by row week label); keep week navigation explicit.
-            navigate(`/week/${w}`);
+            navigateWithYear(`/week/${w}`, isoYearForWeekStartDate(w));
           });
         }
         heat.appendChild(tile);
@@ -533,6 +571,15 @@
     render();
   }
 
+  function navigateWithYear(path, year) {
+    const y = year && /^\d{4}$/.test(String(year)) ? String(year) : null;
+    state.year = y;
+    localStorage.setItem("tg-checkstats.year", state.year || "");
+    setYearInLocation(state.year);
+    history.pushState({}, "", urlWithExplicitYear(path, state.year));
+    render();
+  }
+
   async function render() {
     const yearFromUrl = parseYearFromLocation();
     if (yearFromUrl !== state.year) {
@@ -566,7 +613,7 @@
       return renderMonth(payload);
     }
     if (route === "week") {
-      if (week && state.year && !String(week).startsWith(`${state.year}-`)) {
+      if (week && state.year && isoYearForWeekStartDate(week) && isoYearForWeekStartDate(week) !== state.year) {
         const fallback = defaultWeekForYear();
         if (fallback) {
           history.replaceState({}, "", urlWithYear(`/week/${fallback}`));
@@ -635,7 +682,7 @@
         const next = defaultMonthForYear();
         return navigate(next ? `/month/${next}` : "/");
       }
-      if (route === "week" && week && state.year && !String(week).startsWith(`${state.year}-`)) {
+      if (route === "week" && week && state.year && isoYearForWeekStartDate(week) && isoYearForWeekStartDate(week) !== state.year) {
         const next = defaultWeekForYear();
         return navigate(next ? `/week/${next}` : "/");
       }
