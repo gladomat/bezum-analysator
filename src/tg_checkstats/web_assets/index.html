@@ -1,30 +1,64 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>tg-checkstats — Seasonality UI</title>
+    <title>Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig</title>
     <link rel="stylesheet" href="/assets/styles.css" />
   </head>
   <body>
     <div class="app">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand__icon">A</div>
+          <div class="brand__icon" aria-hidden="true">
+            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
+            </svg>
+          </div>
           <div class="brand__text">
-            <div class="brand__title">Analytics</div>
+            <div class="brand__title">Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig</div>
             <div class="brand__sub">tg-checkstats</div>
           </div>
         </div>
         <nav class="nav">
-          <a class="nav__item" href="/" data-nav="overview">Overview</a>
-          <a class="nav__item" href="/month/" data-nav="month">Month Detail</a>
-          <a class="nav__item" href="/week/" data-nav="week">Week Detail</a>
+          <a class="nav__item" href="/" data-nav="overview">
+            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 3v18h18" />
+              <path d="M18 17V9" />
+              <path d="M13 17V5" />
+              <path d="M8 17v-3" />
+            </svg>
+            <span data-i18n="nav_overview">Übersicht</span>
+          </a>
+          <a class="nav__item" href="/month/" data-nav="month">
+            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 2v4" />
+              <path d="M16 2v4" />
+              <rect width="18" height="18" x="3" y="4" rx="2" />
+              <path d="M3 10h18" />
+            </svg>
+            <span data-i18n="nav_month">Monat</span>
+          </a>
+          <a class="nav__item" href="/week/" data-nav="week">
+            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 2v4" />
+              <path d="M16 2v4" />
+              <rect width="18" height="18" x="3" y="4" rx="2" />
+              <path d="M3 10h18" />
+              <path d="M8 14h.01" />
+              <path d="M12 14h.01" />
+              <path d="M16 14h.01" />
+              <path d="M8 18h.01" />
+              <path d="M12 18h.01" />
+              <path d="M16 18h.01" />
+            </svg>
+            <span data-i18n="nav_week">Woche</span>
+          </a>
         </nav>
         <div class="sidebar__footer">
           <div class="hint">
-            <div class="hint__title">Local UI</div>
-            <div class="hint__text">Read-only, uses derived UI artifacts.</div>
+            <div class="hint__title" data-i18n="hint_title">Lokale UI</div>
+            <div class="hint__text" data-i18n="hint_text">Nur lesend, nutzt abgeleitete UI-Artefakte.</div>
           </div>
         </div>
       </aside>
@@ -33,24 +67,38 @@
         <header class="header">
           <div class="crumbs" id="crumbs">…</div>
           <div class="header__right">
-            <div class="pill" id="metaPill">Loading…</div>
+            <div class="pill" id="metaPill">Lädt…</div>
             <div class="toggle">
-              <label class="toggle__label" for="metric">Metric</label>
+              <label class="toggle__label" for="metric" data-i18n="label_metric">Metrik</label>
               <select id="metric">
                 <option value="check_message_count">Messages</option>
                 <option value="check_event_count">Events</option>
               </select>
             </div>
             <div class="toggle">
-              <label class="toggle__label" for="year">Year</label>
+              <label class="toggle__label" for="year" data-i18n="label_year">Jahr</label>
               <select id="year"></select>
+            </div>
+            <div class="toggle">
+              <label class="toggle__label" for="lang">
+                <svg class="lucide lucide--inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m5 8 6 6" />
+                  <path d="m4 14 6-6 2-3" />
+                  <path d="M2 5h12" />
+                  <path d="M7 2h1" />
+                  <path d="m22 22-5-10-5 10" />
+                  <path d="M14 18h6" />
+                </svg>
+                <span data-i18n="label_lang">Sprache</span>
+              </label>
+              <select id="lang"></select>
             </div>
           </div>
         </header>
 
         <div class="content" id="content">
           <div class="card">
-            <div class="card__title">Loading…</div>
+            <div class="card__title" data-i18n="loading">Lädt…</div>
           </div>
         </div>
       </main>
