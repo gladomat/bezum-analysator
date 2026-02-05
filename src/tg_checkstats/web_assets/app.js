@@ -516,7 +516,7 @@
           const labelX = Math.max(padL, x0 + 6);
           return `
             <rect x="${x0}" y="${padT - 10}" width="${width}" height="${h - padT - 6}" rx="10" fill="${fill}"></rect>
-            <text x="${labelX}" y="${padT - 2}" font-size="12" fill="var(--text-muted)" font-weight="600">${g.year}</text>
+            <text x="${labelX}" y="${padT - 2}" font-size="14" fill="var(--text-muted)" font-weight="600">${g.year}</text>
           `;
         })
         .join("")
@@ -529,7 +529,7 @@
         const label = formatY ? formatY(v) : formatNumber(v);
         return `
           <line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="var(--border)" stroke-dasharray="4" stroke-width="1"></line>
-          <text x="${padL - 10}" y="${y + 4}" text-anchor="end" font-size="11" fill="var(--text-muted)">${label}</text>
+          <text x="${padL - 10}" y="${y + 4}" text-anchor="end" font-size="13" fill="var(--text-muted)">${label}</text>
         `;
       })
       .join("");
@@ -548,7 +548,7 @@
       .join("");
     const step = labelText.length <= 12 ? 1 : labelText.length <= 24 ? 2 : Math.ceil(labelText.length / 10);
     const ticks = labelText
-      .map((l, i) => (i % step === 0 ? `<text x="${padL + i * (barW + 2)}" y="${h - 6}" font-size="11" fill="var(--text-sub)">${l}</text>` : ""))
+      .map((l, i) => (i % step === 0 ? `<text x="${padL + i * (barW + 2)}" y="${h - 6}" font-size="13" fill="var(--text-sub)">${l}</text>` : ""))
       .join("");
     const svg = `
       <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
@@ -557,7 +557,7 @@
         ${yTicks}
           ${bars}
           ${allZero
-        ? `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="14" fill="var(--text-muted)">${t("chart_all_zero")}</text>`
+        ? `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="16" fill="var(--text-muted)">${t("chart_all_zero")}</text>`
         : ""
       }
           ${ticks}
@@ -806,7 +806,7 @@
     const ticks = tickHours.map((hr) => {
       const x = pad + hr * barW + barW / 2;
       const label = String(hr).padStart(2, "0");
-      return `<text x="${x}" y="${h - 6}" text-anchor="middle" font-size="12" fill="#64748b">${label}</text>`;
+      return `<text x="${x}" y="${h - 6}" text-anchor="middle" font-size="14" fill="#64748b">${label}</text>`;
     }).join("");
     return `
       <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
