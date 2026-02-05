@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-0wxn
 title: Replace normal-approx Beta CI with exact quantiles + bucketed updater
-status: in-progress
+status: completed
 type: feature
+priority: normal
 created_at: 2026-02-05T22:16:51Z
-updated_at: 2026-02-05T22:16:51Z
+updated_at: 2026-02-05T22:24:43Z
 ---
 
 Goal: keep existing Beta-Binomial update logic; use exact Beta quantile credible
@@ -18,4 +19,4 @@ per-bucket posterior-as-prior updaters + summaries; add tests.
 - [x] Add tests (SciPy path, fallback path, sequential update, bucket independence)
 - [x] Update requirements/pyproject to include SciPy (optional)
 - [x] Run tests
-- [ ] Commit changes (include bean file)
+- [x] Commit changes (include bean file)
