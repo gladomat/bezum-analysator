@@ -1,109 +1,152 @@
 <!doctype html>
 <html lang="de">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig</title>
-    <link rel="stylesheet" href="/assets/styles.css" />
-  </head>
-  <body>
-    <div class="app">
-      <aside class="sidebar">
-        <div class="brand">
-          <div class="brand__icon" aria-hidden="true">
-            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
-            </svg>
-          </div>
-          <div class="brand__text">
-            <div class="brand__title">Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig</div>
-            <div class="brand__sub">tg-checkstats</div>
-          </div>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand__icon" aria-hidden="true">
+          <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+            <path d="m9.5 14.5 5-5" />
+            <path d="m9.5 9.5 5 5" />
+          </svg>
         </div>
-        <nav class="nav">
-          <a class="nav__item" href="/" data-nav="overview">
-            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 3v18h18" />
-              <path d="M18 17V9" />
-              <path d="M13 17V5" />
-              <path d="M8 17v-3" />
+        <div class="brand__text">
+          <div class="brand__title">Checkstats</div>
+          <div class="brand__sub">Leipzig Edition</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="nav__item" href="/" data-nav="overview">
+          <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+          </svg>
+          <span data-i18n="nav_overview">Übersicht</span>
+        </a>
+        <a class="nav__item" href="/month/" data-nav="month">
+          <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2v4" />
+            <path d="M16 2v4" />
+            <rect width="18" height="18" x="3" y="4" rx="2" />
+            <path d="M3 10h18" />
+          </svg>
+          <span data-i18n="nav_month">Monat</span>
+        </a>
+        <a class="nav__item" href="/week/" data-nav="week">
+          <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2v4" />
+            <path d="M16 2v4" />
+            <rect width="18" height="18" x="3" y="4" rx="2" />
+            <path d="M3 10h18" />
+            <path d="M8 14h.01" />
+            <path d="M12 14h.01" />
+            <path d="M16 14h.01" />
+            <path d="M8 18h.01" />
+            <path d="M12 18h.01" />
+            <path d="M16 18h.01" />
+          </svg>
+          <span data-i18n="nav_week">Woche</span>
+        </a>
+      </nav>
+      <div class="sidebar__footer">
+        <div class="hint">
+          <div class="hint__icon">
+            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
             </svg>
-            <span data-i18n="nav_overview">Übersicht</span>
-          </a>
-          <a class="nav__item" href="/month/" data-nav="month">
-            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 2v4" />
-              <path d="M16 2v4" />
-              <rect width="18" height="18" x="3" y="4" rx="2" />
-              <path d="M3 10h18" />
-            </svg>
-            <span data-i18n="nav_month">Monat</span>
-          </a>
-          <a class="nav__item" href="/week/" data-nav="week">
-            <svg class="lucide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 2v4" />
-              <path d="M16 2v4" />
-              <rect width="18" height="18" x="3" y="4" rx="2" />
-              <path d="M3 10h18" />
-              <path d="M8 14h.01" />
-              <path d="M12 14h.01" />
-              <path d="M16 14h.01" />
-              <path d="M8 18h.01" />
-              <path d="M12 18h.01" />
-              <path d="M16 18h.01" />
-            </svg>
-            <span data-i18n="nav_week">Woche</span>
-          </a>
-        </nav>
-        <div class="sidebar__footer">
-          <div class="hint">
+          </div>
+          <div class="hint__content">
             <div class="hint__title" data-i18n="hint_title">Lokale UI</div>
             <div class="hint__text" data-i18n="hint_text">Nur lesend, nutzt abgeleitete UI-Artefakte.</div>
           </div>
         </div>
-      </aside>
+      </div>
+    </aside>
 
-      <main class="main">
-        <header class="header">
+    <main class="main">
+      <header class="header">
+        <div class="header__left">
+          <h1 class="header__title-full">Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig</h1>
           <div class="crumbs" id="crumbs">…</div>
-          <div class="header__right">
-            <div class="pill" id="metaPill">Lädt…</div>
-            <div class="toggle">
-              <label class="toggle__label" for="metric" data-i18n="label_metric">Metrik</label>
+        </div>
+        <div class="header__right">
+          <div class="pill" id="metaPill">Lädt…</div>
+          <div class="toggle">
+            <label class="toggle__label" for="metric" data-i18n="label_metric">Metrik</label>
+            <div class="select-wrapper">
               <select id="metric">
                 <option value="check_message_count">Messages</option>
                 <option value="check_event_count">Events</option>
               </select>
-            </div>
-            <div class="toggle">
-              <label class="toggle__label" for="year" data-i18n="label_year">Jahr</label>
-              <select id="year"></select>
-            </div>
-            <div class="toggle">
-              <label class="toggle__label" for="lang">
-                <svg class="lucide lucide--inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="m5 8 6 6" />
-                  <path d="m4 14 6-6 2-3" />
-                  <path d="M2 5h12" />
-                  <path d="M7 2h1" />
-                  <path d="m22 22-5-10-5 10" />
-                  <path d="M14 18h6" />
+              <div class="select-arrow">
+                <svg class="lucide" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m6 9 6 6 6-6" />
                 </svg>
-                <span data-i18n="label_lang">Sprache</span>
-              </label>
-              <select id="lang"></select>
+              </div>
             </div>
           </div>
-        </header>
-
-        <div class="content" id="content">
-          <div class="card">
-            <div class="card__title" data-i18n="loading">Lädt…</div>
+          <div class="toggle">
+            <label class="toggle__label" for="year" data-i18n="label_year">Jahr</label>
+            <div class="select-wrapper">
+              <select id="year"></select>
+              <div class="select-arrow">
+                <svg class="lucide" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="toggle">
+            <label class="toggle__label" for="lang">
+              <span data-i18n="label_lang">Sprache</span>
+            </label>
+            <div class="select-wrapper">
+              <select id="lang"></select>
+              <div class="select-arrow">
+                <svg class="lucide" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
-      </main>
-    </div>
+      </header>
 
-    <script src="/assets/app.js"></script>
-  </body>
+      <div class="content" id="content">
+        <div class="card">
+          <div class="card__title" data-i18n="loading">Lädt…</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/assets/app.js"></script>
+</body>
+
 </html>
