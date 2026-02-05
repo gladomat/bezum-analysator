@@ -9,6 +9,8 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Dict, List, Mapping, Tuple
 
+from tg_checkstats.bayes import BetaPosteriorSummary, beta_posterior_summary
+
 
 def _weekday_label(idx: int) -> str:
     """Return weekday label for 0=Mon..6=Sun."""
@@ -50,6 +52,7 @@ class UiArtifacts:
         self.days_by_date = self._load_day_counts()
         self.day_hours_by_date = self._load_day_hour_counts()
         self.month_weekday_stats = self._load_month_weekday_stats()
+        self.month_posteriors, self.month_weekday_posteriors = self._compute_posteriors()
 
     def _read_metadata(self) -> Mapping[str, object]:
         """Read run metadata JSON."""
@@ -144,7 +147,12 @@ class UiArtifacts:
 
     def get_months(self) -> list[dict]:
         """Return overview rows for all months."""
-        return list(self.months)
+        out: list[dict] = []
+        for row in self.months:
+            month = row.get("month")
+            posterior = self.month_posteriors.get(month)
+            out.append({**row, **_posterior_payload(posterior)})
+        return out
 
     def get_week(self, week_start_date: str) -> dict:
         """Return week detail payload for a given Monday week start date."""
@@ -225,7 +233,11 @@ class UiArtifacts:
                 )
             current += timedelta(days=7)
 
-        weekday_stats = self.month_weekday_stats.get(month, [])
+        weekday_stats = []
+        for stat in self.month_weekday_stats.get(month, []):
+            key = (month, int(stat.get("weekday_idx", 0)))
+            posterior = self.month_weekday_posteriors.get(key)
+            weekday_stats.append({**stat, **_posterior_payload(posterior)})
         return {
             "month": month,
             "weeks": weeks,
@@ -233,3 +245,74 @@ class UiArtifacts:
             "weekday_stats": weekday_stats,
         }
 
+    def _compute_posteriors(
+        self,
+        *,
+        prior_alpha: float = 0.5,
+        prior_beta: float = 0.5,
+    ) -> tuple[dict[str, BetaPosteriorSummary], dict[tuple[str, int], BetaPosteriorSummary]]:
+        """Compute month-level and month×weekday posteriors from day totals.
+
+        We model each day as a Bernoulli trial:
+          success = 1 if check_event_count > 0 else 0
+
+        This uses a conjugate Beta prior (Jeffreys by default), so the posterior
+        is analytic and fast.
+        """
+        month_trials: dict[str, int] = {}
+        month_successes: dict[str, int] = {}
+        month_weekday_trials: dict[tuple[str, int], int] = {}
+        month_weekday_successes: dict[tuple[str, int], int] = {}
+
+        for row in self.days_by_date.values():
+            month = str(row.get("month") or "")
+            if not month:
+                continue
+            weekday_idx = int(row.get("weekday_idx") or 0)
+            success = int(row.get("check_event_count") or 0) > 0
+
+            month_trials[month] = month_trials.get(month, 0) + 1
+            month_successes[month] = month_successes.get(month, 0) + (1 if success else 0)
+
+            key = (month, weekday_idx)
+            month_weekday_trials[key] = month_weekday_trials.get(key, 0) + 1
+            month_weekday_successes[key] = month_weekday_successes.get(key, 0) + (1 if success else 0)
+
+        month_posteriors: dict[str, BetaPosteriorSummary] = {}
+        for month, trials in month_trials.items():
+            month_posteriors[month] = beta_posterior_summary(
+                trials=trials,
+                successes=month_successes.get(month, 0),
+                prior_alpha=prior_alpha,
+                prior_beta=prior_beta,
+            )
+
+        month_weekday_posteriors: dict[tuple[str, int], BetaPosteriorSummary] = {}
+        for key, trials in month_weekday_trials.items():
+            month_weekday_posteriors[key] = beta_posterior_summary(
+                trials=trials,
+                successes=month_weekday_successes.get(key, 0),
+                prior_alpha=prior_alpha,
+                prior_beta=prior_beta,
+            )
+
+        return month_posteriors, month_weekday_posteriors
+
+
+def _posterior_payload(posterior: BetaPosteriorSummary | None) -> dict:
+    """Serialize posterior summary into JSON-friendly fields."""
+    if posterior is None:
+        return {
+            "posterior_check_prob_mean": None,
+            "posterior_check_prob_low": None,
+            "posterior_check_prob_high": None,
+            "posterior_trials": 0,
+            "posterior_successes": 0,
+        }
+    return {
+        "posterior_check_prob_mean": posterior.mean,
+        "posterior_check_prob_low": posterior.ci_low,
+        "posterior_check_prob_high": posterior.ci_high,
+        "posterior_trials": posterior.trials,
+        "posterior_successes": posterior.successes,
+    }

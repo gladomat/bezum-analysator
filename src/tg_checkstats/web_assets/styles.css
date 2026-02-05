@@ -117,5 +117,23 @@ select{
 .bar:hover rect{ filter: brightness(0.96); }
 .bar:hover rect{ stroke: rgba(25,127,230,.35); stroke-width: 1; }
 
+.probgrid{
+  display:grid;
+  gap:6px;
+  margin-top:10px;
+}
+.probcell{
+  border:1px solid var(--border);
+  background:#f8fafc;
+  border-radius:10px;
+  padding:6px 8px;
+  font-size:12px;
+  color:#334155;
+  text-align:center;
+  line-height:1.2;
+}
+.probcell__top{ font-size:11px; color:var(--muted); margin-bottom:2px; }
+.probcell__main{ font-weight:800; }
+
 .error{ border:1px solid #fecaca; background:#fff1f2; color:#7f1d1d; }
 .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }

@@ -89,3 +89,35 @@ def test_month_api_payload_contains_week_grid(tmp_path: Path) -> None:
     assert {"date", "week_start_date", "weekday_idx", "in_month"}.issubset(cell.keys())
     assert {"check_message_count", "check_event_count"}.issubset(cell.keys())
 
+    stat = payload["weekday_stats"][0]
+    assert {
+        "posterior_check_prob_mean",
+        "posterior_check_prob_low",
+        "posterior_check_prob_high",
+        "posterior_trials",
+        "posterior_successes",
+    }.issubset(stat.keys())
+
+
+def test_months_api_payload_contains_posterior_fields(tmp_path: Path) -> None:
+    data = [
+        {"id": 1, "date": "2024-01-01T10:00:00Z", "text": "2k"},
+        {"id": 2, "date": "2024-01-10T08:00:00Z", "text": "Kontis"},
+    ]
+    export_path = tmp_path / "export.json"
+    export_path.write_text(json.dumps(data), encoding="utf-8")
+    analyze_export(export_path, tmp_path)
+
+    from tg_checkstats.web_ui import UiArtifacts  # import after artifacts exist
+
+    artifacts = UiArtifacts(tmp_path)
+    months = artifacts.get_months()
+    assert months
+    row = months[0]
+    assert {
+        "posterior_check_prob_mean",
+        "posterior_check_prob_low",
+        "posterior_check_prob_high",
+        "posterior_trials",
+        "posterior_successes",
+    }.issubset(row.keys())

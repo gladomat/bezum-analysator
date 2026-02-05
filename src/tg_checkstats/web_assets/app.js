@@ -52,6 +52,43 @@
     return new Intl.NumberFormat(undefined, { maximumFractionDigits: maxFractionDigits }).format(n);
   }
 
+  function formatPosteriorPct(p) {
+    if (p == null || Number.isNaN(+p)) return "—";
+    return `${Math.round(p * 100)}%`;
+  }
+
+  function posteriorTitle(row) {
+    if (!row) return "";
+    const mean = row.posterior_check_prob_mean;
+    const lo = row.posterior_check_prob_low;
+    const hi = row.posterior_check_prob_high;
+    const s = row.posterior_successes;
+    const n = row.posterior_trials;
+    if (mean == null) return "";
+    return `Posterior P(check in day)\nmean ${formatPosteriorPct(mean)}\n95% ~ [${formatPosteriorPct(lo)}, ${formatPosteriorPct(hi)}]\n${s}/${n} days with checks`;
+  }
+
+  function renderPosteriorGrid({ labels, topLabels, rows, cols }) {
+    const grid = document.createElement("div");
+    grid.className = "probgrid";
+    grid.style.gridTemplateColumns = `repeat(${cols || labels.length}, 1fr)`;
+    grid.innerHTML = labels
+      .map((label, i) => {
+        const row = rows[i];
+        const top = topLabels ? topLabels[i] : label;
+        const mean = row ? formatPosteriorPct(row.posterior_check_prob_mean) : "—";
+        const title = posteriorTitle(row);
+        return `
+          <div class="probcell" title="${title.replace(/\"/g, "&quot;")}">
+            <div class="probcell__top">${top}</div>
+            <div class="probcell__main">${mean}</div>
+          </div>
+        `;
+      })
+      .join("");
+    return grid;
+  }
+
   function metricLabel(metric) {
     return metric === "check_event_count" ? "Events" : "Messages";
   }
@@ -344,6 +381,13 @@
           onClick: (i) => navigateWithYear(`/month/${labels[i]}`, yearFromMonth(labels[i])),
         })
       );
+      block.appendChild(
+        renderPosteriorGrid({
+          labels,
+          topLabels: labels.map(monthLabel),
+          rows: months,
+        })
+      );
       totalCard.appendChild(block);
     });
 
@@ -371,6 +415,13 @@
           values,
           formatY: (v) => formatNumber(v, 3),
           onClick: (i) => navigateWithYear(`/month/${labels[i]}`, yearFromMonth(labels[i])),
+        })
+      );
+      block.appendChild(
+        renderPosteriorGrid({
+          labels,
+          topLabels: labels.map(monthLabel),
+          rows: months,
         })
       );
       rateCard.appendChild(block);
@@ -468,6 +519,13 @@
     const values = payload.weekday_stats.map((s) => metric === "check_event_count" ? s.mean_events_per_weekday_in_range : s.mean_messages_per_weekday_in_range);
     statsCard.querySelector("#weekdayBars").appendChild(
       svgBarChart({ labels, values, onClick: () => { } })
+    );
+    statsCard.appendChild(
+      renderPosteriorGrid({
+        labels,
+        rows: payload.weekday_stats,
+        cols: 7,
+      })
     );
 
     $("content").innerHTML = "";
