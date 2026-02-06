@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-e6zh
 title: Make header title full-width above controls
-status: in-progress
+status: completed
 type: feature
+priority: normal
 created_at: 2026-02-06T14:14:17Z
-updated_at: 2026-02-06T14:14:17Z
+updated_at: 2026-02-06T14:15:31Z
 ---
 
 Adjust the web UI header so the main title spans the full main area width, with upload/metric/year/language controls moved to a second row below the title.
