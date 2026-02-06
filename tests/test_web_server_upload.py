@@ -90,3 +90,32 @@ def test_upload_creates_new_run_and_switches_active_run(tmp_path: Path) -> None:
     after = json.loads(body.decode("utf-8"))
     assert after["run_id"] == upload_payload["run_id"]
 
+
+def test_top_lines_api_returns_tram_and_bus_rankings(tmp_path: Path) -> None:
+    """`/api/top-lines` returns split rankings for tram and bus line checks."""
+    run_dir = tmp_path / "run"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "raw").mkdir(parents=True, exist_ok=True)
+    export_path = run_dir / "raw" / "export.json"
+    export_path.write_text(
+        json.dumps(
+            [
+                {"id": 1, "date": "2024-01-01T10:00:00Z", "text": "2k tram 10"},
+                {"id": 2, "date": "2024-01-02T10:00:00Z", "text": "2k tram 10"},
+                {"id": 3, "date": "2024-01-03T10:00:00Z", "text": "kontis bus 60"},
+            ]
+        ),
+        encoding="utf-8",
+    )
+    analyze_export(export_path, run_dir)
+    app = create_app(run_dir=run_dir)
+
+    status, body = _call_wsgi_app(app, method="GET", path="/api/top-lines")
+    assert status.startswith("200")
+    payload = json.loads(body.decode("utf-8"))
+
+    assert {"tram", "bus"}.issubset(payload.keys())
+    assert payload["tram"][0]["line_id"] == "10"
+    assert payload["tram"][0]["check_event_count"] == 2
+    assert payload["bus"][0]["line_id"] == "60"
+    assert payload["bus"][0]["check_event_count"] == 1

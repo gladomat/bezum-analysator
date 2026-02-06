@@ -141,6 +141,8 @@ def handle_api(*, state: _AppState, path: str, environ) -> tuple[str, list[tuple
             return json_response(artifacts.get_week(week_start_date))
         except ValueError as exc:
             return json_response({"error": str(exc)}, status="400 Bad Request")
+    if path == "/api/top-lines":
+        return json_response(artifacts.get_top_lines())
 
     return json_response({"error": "not_found"}, status="404 Not Found")
 

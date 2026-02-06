@@ -54,6 +54,7 @@ class UiArtifacts:
         self.month_weekday_stats = self._load_month_weekday_stats()
         self.month_posteriors, self.month_weekday_posteriors = self._compute_posteriors()
         self.month_weekday_time_windows = self._compute_month_weekday_time_windows()
+        self.top_lines_by_mode = self._compute_top_lines_by_mode()
 
     def _read_metadata(self) -> Mapping[str, object]:
         """Read run metadata JSON."""
@@ -154,6 +155,22 @@ class UiArtifacts:
             posterior = self.month_posteriors.get(month)
             out.append({**row, **_posterior_payload(posterior)})
         return out
+
+    def get_top_lines(self, *, limit: int = 5) -> dict[str, list[dict]]:
+        """Return top checked lines split by transport mode.
+
+        Args:
+            limit: Maximum number of rows per mode bucket.
+
+        Returns:
+            Dict with `tram` and `bus` keys; each contains sorted rows with
+            `line_id` and `check_event_count`.
+        """
+        n = max(1, int(limit))
+        return {
+            "tram": self.top_lines_by_mode.get("tram", [])[:n],
+            "bus": self.top_lines_by_mode.get("bus", [])[:n],
+        }
 
     def get_week(self, week_start_date: str) -> dict:
         """Return week detail payload for a given Monday week start date."""
@@ -328,6 +345,33 @@ class UiArtifacts:
         out: dict[tuple[str, int], dict] = {}
         for key, weights in hour_weights.items():
             out[key] = _weighted_hour_window(weights, q_low=0.10, q_high=0.90)
+        return out
+
+    def _compute_top_lines_by_mode(self) -> dict[str, list[dict]]:
+        """Aggregate event counts by `(mode_guess, line_id)` from events.csv."""
+        events_path = self.run_dir / "derived" / "events.csv"
+        if not events_path.exists():
+            return {"tram": [], "bus": []}
+
+        rows = _read_csv(events_path)
+        by_mode_line: dict[tuple[str, str], int] = {}
+        for row in rows:
+            mode = str(row.get("mode_guess") or "").strip().lower()
+            line_id = str(row.get("line_id") or "").strip()
+            if not line_id or mode not in {"tram", "bus"}:
+                continue
+            weight = _parse_int(row.get("event_weight"))
+            by_mode_line[(mode, line_id)] = by_mode_line.get((mode, line_id), 0) + max(1, weight)
+
+        out: dict[str, list[dict]] = {"tram": [], "bus": []}
+        for mode in ("tram", "bus"):
+            mode_rows = [
+                {"line_id": line_id, "check_event_count": count}
+                for (m, line_id), count in by_mode_line.items()
+                if m == mode
+            ]
+            mode_rows.sort(key=lambda r: (-int(r["check_event_count"]), str(r["line_id"])))
+            out[mode] = mode_rows
         return out
 
 

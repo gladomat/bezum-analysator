@@ -2,6 +2,7 @@
   const state = {
     run: null,
     months: null,
+    topLines: null,
     weeks: null,
     year: localStorage.getItem("tg-checkstats.year") || null,
     metric: localStorage.getItem("tg-checkstats.metric") || "check_message_count",
@@ -39,6 +40,11 @@
       overview_totals_hint: "Klicke auf einen Balken für die Monatsansicht",
       overview_rate_title: "Rate pro Tag (im Zeitraum)",
       overview_rate_sub: "Normalisiert nach Tagen im Zeitraum ({metric}).",
+      overview_lines_title: "Häufigste kontrollierte Linien",
+      overview_lines_sub: "Top-Linien nach erkannten Kontrollen.",
+      lines_tram: "Tram",
+      lines_bus: "Bus",
+      lines_no_data: "Keine Linien erkannt",
       month_prev: "Vorheriger Monat",
       month_next: "Nächster Monat",
       month_title: "Monat {month}",
@@ -99,6 +105,11 @@
       overview_totals_hint: "Click a bar to open month detail",
       overview_rate_title: "Per-Day In-Range Rate",
       overview_rate_sub: "Normalized by days in range ({metric}).",
+      overview_lines_title: "Most checked lines",
+      overview_lines_sub: "Top lines by detected checks.",
+      lines_tram: "Tram",
+      lines_bus: "Bus",
+      lines_no_data: "No lines detected",
       month_prev: "Previous month",
       month_next: "Next month",
       month_title: "Month {month}",
@@ -349,6 +360,7 @@
     state.run = await api("/api/run");
     if (!state.run.missing_files || state.run.missing_files.length === 0) {
       state.months = await api("/api/months");
+      state.topLines = await api("/api/top-lines");
       state.months = state.months.map((r) => ({
         ...r,
         month_check_message_count: +r.month_check_message_count,
@@ -356,8 +368,19 @@
         messages_per_day_in_range: +r.messages_per_day_in_range,
         events_per_day_in_range: +r.events_per_day_in_range,
       }));
+      state.topLines = {
+        tram: (state.topLines?.tram || []).map((row) => ({
+          line_id: String(row.line_id || ""),
+          check_event_count: +row.check_event_count || 0,
+        })),
+        bus: (state.topLines?.bus || []).map((row) => ({
+          line_id: String(row.line_id || ""),
+          check_event_count: +row.check_event_count || 0,
+        })),
+      };
     } else {
       state.months = null;
+      state.topLines = { tram: [], bus: [] };
     }
 
     const years = uniqueYearsFromMonths(state.months || []);
@@ -758,10 +781,41 @@
       rateCard.appendChild(block);
     });
 
+    const topLinesCard = document.createElement("div");
+    topLinesCard.className = "card";
+    topLinesCard.innerHTML = `
+        <div class="row">
+          <div>
+            <div class="card__title">${t("overview_lines_title")}</div>
+            <div class="card__sub">${t("overview_lines_sub")}</div>
+          </div>
+        </div>
+      `;
+
+    const buildLineList = (title, rows) => {
+      const section = document.createElement("div");
+      section.className = "line-stats";
+      const hasRows = Array.isArray(rows) && rows.length > 0;
+      section.innerHTML = `
+          <div class="line-stats__title">${title}</div>
+          ${hasRows
+          ? `<div class="line-stats__list">
+                 ${rows.map((row) => `<div class="line-stats__row"><span class="mono">${row.line_id}</span><b>${formatInt(row.check_event_count)}</b></div>`).join("")}
+               </div>`
+          : `<div class="line-stats__empty">${t("lines_no_data")}</div>`
+        }
+        `;
+      return section;
+    };
+
+    topLinesCard.appendChild(buildLineList(t("lines_tram"), state.topLines?.tram || []));
+    topLinesCard.appendChild(buildLineList(t("lines_bus"), state.topLines?.bus || []));
+
     $("content").innerHTML = `<div class="grid"></div>`;
     const grid = document.querySelector(".grid");
     grid.appendChild(totalCard);
     grid.appendChild(rateCard);
+    grid.appendChild(topLinesCard);
   }
 
   function heatColor(value, max) {

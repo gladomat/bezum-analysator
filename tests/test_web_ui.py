@@ -129,3 +129,31 @@ def test_months_api_payload_contains_posterior_fields(tmp_path: Path) -> None:
         "posterior_trials",
         "posterior_successes",
     }.issubset(row.keys())
+
+
+def test_top_lines_payload_splits_tram_and_bus_and_sorts_by_count(tmp_path: Path) -> None:
+    """Top line statistics expose separate sorted tram/bus rankings."""
+    data = [
+        {"id": 1, "date": "2024-01-01T10:00:00Z", "text": "2k tram 10"},
+        {"id": 2, "date": "2024-01-02T10:00:00Z", "text": "3k tram 10"},
+        {"id": 3, "date": "2024-01-03T10:00:00Z", "text": "kontis bus 60"},
+        {"id": 4, "date": "2024-01-04T10:00:00Z", "text": "kontis bus 60"},
+        {"id": 5, "date": "2024-01-05T10:00:00Z", "text": "kontis bus 60"},
+        {"id": 6, "date": "2024-01-06T10:00:00Z", "text": "2k tram 11"},
+    ]
+    export_path = tmp_path / "export.json"
+    export_path.write_text(json.dumps(data), encoding="utf-8")
+    analyze_export(export_path, tmp_path)
+
+    from tg_checkstats.web_ui import UiArtifacts  # import after artifacts exist
+
+    artifacts = UiArtifacts(tmp_path)
+    payload = artifacts.get_top_lines(limit=5)
+
+    assert {"tram", "bus"}.issubset(payload.keys())
+    assert payload["tram"][0]["line_id"] == "10"
+    assert payload["tram"][0]["check_event_count"] == 2
+    assert payload["tram"][1]["line_id"] == "11"
+    assert payload["tram"][1]["check_event_count"] == 1
+    assert payload["bus"][0]["line_id"] == "60"
+    assert payload["bus"][0]["check_event_count"] == 3

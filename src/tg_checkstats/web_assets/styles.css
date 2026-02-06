@@ -408,6 +408,45 @@ a {
   line-height: 1.5;
 }
 
+.line-stats {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--surface);
+}
+
+.line-stats__title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.line-stats__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.line-stats__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+}
+
+.line-stats__row b {
+  font-size: 14px;
+}
+
+.line-stats__empty {
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
