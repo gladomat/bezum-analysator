@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-hw7e
 title: Add most common checked tram/bus lines stat
-status: in-progress
+status: completed
 type: feature
+priority: normal
 created_at: 2026-02-06T14:02:38Z
-updated_at: 2026-02-06T14:02:38Z
+updated_at: 2026-02-06T14:05:16Z
 ---
 
 Add a new statistic in the web UI that shows the most common tram and bus lines that appear in detected check events.
