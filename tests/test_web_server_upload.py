@@ -119,3 +119,6 @@ def test_top_lines_api_returns_tram_and_bus_rankings(tmp_path: Path) -> None:
     assert payload["tram"][0]["check_event_count"] == 2
     assert payload["bus"][0]["line_id"] == "60"
     assert payload["bus"][0]["check_event_count"] == 1
+    tram_line_1 = next((row for row in payload["tram"] if row["line_id"] == "1"), None)
+    assert tram_line_1 is not None
+    assert tram_line_1["check_event_count"] == 0

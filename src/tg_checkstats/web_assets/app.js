@@ -45,6 +45,7 @@
       lines_tram: "Tram",
       lines_bus: "Bus",
       lines_no_data: "Keine Linien erkannt",
+      lines_axis_hint: "Von links nach rechts: häufig zu selten",
       month_prev: "Vorheriger Monat",
       month_next: "Nächster Monat",
       month_title: "Monat {month}",
@@ -110,6 +111,7 @@
       lines_tram: "Tram",
       lines_bus: "Bus",
       lines_no_data: "No lines detected",
+      lines_axis_hint: "Left to right: most to least common",
       month_prev: "Previous month",
       month_next: "Next month",
       month_title: "Month {month}",
@@ -589,7 +591,8 @@
   }
 
   function svgBarChart({ labels, displayLabels, values, onClick, formatY }) {
-    const w = 900;
+    const minBarPitch = 26;
+    const w = Math.max(900, labels.length * minBarPitch + 100);
     const h = 180;
     const padL = 72;
     const padR = 18;
@@ -671,11 +674,14 @@
       `;
     const wrap = document.createElement("div");
     wrap.className = "chart-container";
+    wrap.style.overflowX = "auto";
     wrap.innerHTML = svg;
-    wrap.querySelectorAll(".bar").forEach((g) => {
-      g.style.cursor = "pointer";
-      g.addEventListener("click", () => onClick(parseInt(g.getAttribute("data-i"), 10)));
-    });
+    if (typeof onClick === "function") {
+      wrap.querySelectorAll(".bar").forEach((g) => {
+        g.style.cursor = "pointer";
+        g.addEventListener("click", () => onClick(parseInt(g.getAttribute("data-i"), 10)));
+      });
+    }
     return wrap;
   }
 
@@ -788,28 +794,38 @@
           <div>
             <div class="card__title">${t("overview_lines_title")}</div>
             <div class="card__sub">${t("overview_lines_sub")}</div>
+            <div class="card__sub" style="margin-top:-16px">${t("lines_axis_hint")}</div>
           </div>
         </div>
       `;
 
-    const buildLineList = (title, rows) => {
+    const buildLinePlot = (title, rows) => {
       const section = document.createElement("div");
-      section.className = "line-stats";
+      section.className = "line-plot-block";
       const hasRows = Array.isArray(rows) && rows.length > 0;
-      section.innerHTML = `
-          <div class="line-stats__title">${title}</div>
-          ${hasRows
-          ? `<div class="line-stats__list">
-                 ${rows.map((row) => `<div class="line-stats__row"><span class="mono">${row.line_id}</span><b>${formatInt(row.check_event_count)}</b></div>`).join("")}
-               </div>`
-          : `<div class="line-stats__empty">${t("lines_no_data")}</div>`
-        }
-        `;
+      section.innerHTML = `<div class="line-plot-title">${title}</div>`;
+      if (!hasRows) {
+        const empty = document.createElement("div");
+        empty.className = "line-stats__empty";
+        empty.textContent = t("lines_no_data");
+        section.appendChild(empty);
+        return section;
+      }
+      const labels = rows.map((row) => String(row.line_id || ""));
+      const values = rows.map((row) => +row.check_event_count || 0);
+      section.appendChild(
+        svgBarChart({
+          labels,
+          displayLabels: labels,
+          values,
+          formatY: (v) => formatInt(Math.round(v)),
+        })
+      );
       return section;
     };
 
-    topLinesCard.appendChild(buildLineList(t("lines_tram"), state.topLines?.tram || []));
-    topLinesCard.appendChild(buildLineList(t("lines_bus"), state.topLines?.bus || []));
+    topLinesCard.appendChild(buildLinePlot(t("lines_tram"), state.topLines?.tram || []));
+    topLinesCard.appendChild(buildLinePlot(t("lines_bus"), state.topLines?.bus || []));
 
     $("content").innerHTML = `<div class="grid"></div>`;
     const grid = document.querySelector(".grid");

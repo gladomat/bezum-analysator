@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Mapping, Tuple
 
 from tg_checkstats.bayes import BetaPosteriorSummary, beta_posterior_summary
+from tg_checkstats.line_universe import BUS_LINES, REGIONALBUS_LINES, TRAM_LINES
 
 
 def _weekday_label(idx: int) -> str:
@@ -156,20 +157,20 @@ class UiArtifacts:
             out.append({**row, **_posterior_payload(posterior)})
         return out
 
-    def get_top_lines(self, *, limit: int = 5) -> dict[str, list[dict]]:
+    def get_top_lines(self, *, limit: int | None = None) -> dict[str, list[dict]]:
         """Return top checked lines split by transport mode.
 
         Args:
-            limit: Maximum number of rows per mode bucket.
+            limit: Maximum number of rows per mode bucket; `None` means all.
 
         Returns:
             Dict with `tram` and `bus` keys; each contains sorted rows with
             `line_id` and `check_event_count`.
         """
-        n = max(1, int(limit))
+        n = None if limit is None else max(1, int(limit))
         return {
-            "tram": self.top_lines_by_mode.get("tram", [])[:n],
-            "bus": self.top_lines_by_mode.get("bus", [])[:n],
+            "tram": self.top_lines_by_mode.get("tram", [])[:n] if n is not None else self.top_lines_by_mode.get("tram", []),
+            "bus": self.top_lines_by_mode.get("bus", [])[:n] if n is not None else self.top_lines_by_mode.get("bus", []),
         }
 
     def get_week(self, week_start_date: str) -> dict:
@@ -350,29 +351,40 @@ class UiArtifacts:
     def _compute_top_lines_by_mode(self) -> dict[str, list[dict]]:
         """Aggregate event counts by `(mode_guess, line_id)` from events.csv."""
         events_path = self.run_dir / "derived" / "events.csv"
-        if not events_path.exists():
-            return {"tram": [], "bus": []}
-
-        rows = _read_csv(events_path)
         by_mode_line: dict[tuple[str, str], int] = {}
-        for row in rows:
-            mode = str(row.get("mode_guess") or "").strip().lower()
-            line_id = str(row.get("line_id") or "").strip()
-            if not line_id or mode not in {"tram", "bus"}:
-                continue
-            weight = _parse_int(row.get("event_weight"))
-            by_mode_line[(mode, line_id)] = by_mode_line.get((mode, line_id), 0) + max(1, weight)
+        if events_path.exists():
+            rows = _read_csv(events_path)
+            for row in rows:
+                mode = str(row.get("mode_guess") or "").strip().lower()
+                line_id = str(row.get("line_id") or "").strip().upper()
+                if not line_id or mode not in {"tram", "bus"}:
+                    continue
+                weight = _parse_int(row.get("event_weight"))
+                by_mode_line[(mode, line_id)] = by_mode_line.get((mode, line_id), 0) + max(1, weight)
+
+        tram_universe = sorted(TRAM_LINES, key=_line_sort_key)
+        bus_universe = sorted(BUS_LINES | REGIONALBUS_LINES, key=_line_sort_key)
 
         out: dict[str, list[dict]] = {"tram": [], "bus": []}
-        for mode in ("tram", "bus"):
+        for mode, universe in (("tram", tram_universe), ("bus", bus_universe)):
             mode_rows = [
-                {"line_id": line_id, "check_event_count": count}
-                for (m, line_id), count in by_mode_line.items()
-                if m == mode
+                {
+                    "line_id": line_id,
+                    "check_event_count": int(by_mode_line.get((mode, line_id), 0)),
+                }
+                for line_id in universe
             ]
-            mode_rows.sort(key=lambda r: (-int(r["check_event_count"]), str(r["line_id"])))
+            mode_rows.sort(key=lambda r: (-int(r["check_event_count"]), _line_sort_key(str(r["line_id"]))))
             out[mode] = mode_rows
         return out
+
+
+def _line_sort_key(line_id: str) -> tuple[int, str]:
+    """Return a stable sort key for numeric-first line IDs."""
+    value = str(line_id).strip().upper()
+    if value.isdigit():
+        return (0, f"{int(value):04d}")
+    return (1, value)
 
 
 def _posterior_payload(posterior: BetaPosteriorSummary | None) -> dict:

@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 from tg_checkstats.analyze import analyze_export
+from tg_checkstats.line_universe import BUS_LINES, REGIONALBUS_LINES, TRAM_LINES
 
 
 def _read_csv_rows(path: Path) -> list[dict[str, str]]:
@@ -148,12 +149,19 @@ def test_top_lines_payload_splits_tram_and_bus_and_sorts_by_count(tmp_path: Path
     from tg_checkstats.web_ui import UiArtifacts  # import after artifacts exist
 
     artifacts = UiArtifacts(tmp_path)
-    payload = artifacts.get_top_lines(limit=5)
+    payload = artifacts.get_top_lines()
 
     assert {"tram", "bus"}.issubset(payload.keys())
+    assert len(payload["tram"]) == len(TRAM_LINES)
+    assert len(payload["bus"]) == len(BUS_LINES | REGIONALBUS_LINES)
     assert payload["tram"][0]["line_id"] == "10"
     assert payload["tram"][0]["check_event_count"] == 2
     assert payload["tram"][1]["line_id"] == "11"
     assert payload["tram"][1]["check_event_count"] == 1
     assert payload["bus"][0]["line_id"] == "60"
     assert payload["bus"][0]["check_event_count"] == 3
+
+    # Unchecked lines must still be present with zero counts.
+    tram_line_1 = next((row for row in payload["tram"] if row["line_id"] == "1"), None)
+    assert tram_line_1 is not None
+    assert tram_line_1["check_event_count"] == 0

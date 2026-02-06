@@ -447,6 +447,19 @@ a {
   font-size: 14px;
 }
 
+.line-plot-block {
+  margin-top: 18px;
+}
+
+.line-plot-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
