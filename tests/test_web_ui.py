@@ -69,9 +69,9 @@ def test_week_api_payload_has_7_days_and_24_bins(tmp_path: Path) -> None:
 
 def test_month_api_payload_contains_week_grid(tmp_path: Path) -> None:
     data = [
-        {"id": 1, "date": "2024-01-01T00:00:00Z", "text": "2k"},
-        {"id": 2, "date": "2024-01-01T12:00:00Z", "text": "2k"},
-        {"id": 3, "date": "2024-01-10T08:00:00Z", "text": "Kontis"},
+        {"id": 1, "date": "2024-01-01T00:00:00Z", "text": "2k tram 10"},
+        {"id": 2, "date": "2024-01-01T12:00:00Z", "text": "2k tram 10"},
+        {"id": 3, "date": "2024-01-10T08:00:00Z", "text": "Kontis bus 60"},
     ]
     export_path = tmp_path / "export.json"
     export_path.write_text(json.dumps(data), encoding="utf-8")
@@ -106,6 +106,12 @@ def test_month_api_payload_contains_week_grid(tmp_path: Path) -> None:
     assert monday["probable_check_end_hour_p90"] == 13
     assert abs(float(monday["probable_check_mean_hour"]) - 7.0) < 1e-6
     assert abs(float(monday["probable_check_sd_minutes"]) - 360.0) < 1e-6
+    assert "top_lines" in payload
+    assert {"tram", "bus"}.issubset(payload["top_lines"].keys())
+    assert payload["top_lines"]["tram"][0]["line_id"] == "10"
+    assert payload["top_lines"]["tram"][0]["check_event_count"] == 2
+    assert payload["top_lines"]["bus"][0]["line_id"] == "60"
+    assert payload["top_lines"]["bus"][0]["check_event_count"] == 1
 
 
 def test_months_api_payload_contains_posterior_fields(tmp_path: Path) -> None:

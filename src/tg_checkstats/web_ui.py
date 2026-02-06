@@ -55,6 +55,7 @@ class UiArtifacts:
         self.month_weekday_stats = self._load_month_weekday_stats()
         self.month_posteriors, self.month_weekday_posteriors = self._compute_posteriors()
         self.month_weekday_time_windows = self._compute_month_weekday_time_windows()
+        self.month_top_lines_by_mode = self._compute_month_top_lines_by_mode()
         self.top_lines_by_mode = self._compute_top_lines_by_mode()
 
     def _read_metadata(self) -> Mapping[str, object]:
@@ -220,7 +221,16 @@ class UiArtifacts:
             d for d, row in self.days_by_date.items() if row.get("month") == month
         )
         if not in_month_dates:
-            return {"month": month, "weeks": [], "grid": [], "weekday_stats": []}
+            return {
+                "month": month,
+                "weeks": [],
+                "grid": [],
+                "weekday_stats": [],
+                "top_lines": {
+                    "tram": self.month_top_lines_by_mode.get(month, {}).get("tram", []),
+                    "bus": self.month_top_lines_by_mode.get(month, {}).get("bus", []),
+                },
+            }
 
         first = date.fromisoformat(in_month_dates[0])
         last = date.fromisoformat(in_month_dates[-1])
@@ -263,6 +273,10 @@ class UiArtifacts:
             "weeks": weeks,
             "grid": grid,
             "weekday_stats": weekday_stats,
+            "top_lines": {
+                "tram": self.month_top_lines_by_mode.get(month, {}).get("tram", []),
+                "bus": self.month_top_lines_by_mode.get(month, {}).get("bus", []),
+            },
         }
 
     def _compute_posteriors(
@@ -376,6 +390,42 @@ class UiArtifacts:
             ]
             mode_rows.sort(key=lambda r: (-int(r["check_event_count"]), _line_sort_key(str(r["line_id"]))))
             out[mode] = mode_rows
+        return out
+
+    def _compute_month_top_lines_by_mode(self) -> dict[str, dict[str, list[dict]]]:
+        """Aggregate top lines per month with zero-filled tram/bus universes."""
+        events_path = self.run_dir / "derived" / "events.csv"
+        by_month_mode_line: dict[tuple[str, str, str], int] = {}
+        if events_path.exists():
+            rows = _read_csv(events_path)
+            for row in rows:
+                month = str(row.get("month") or "").strip()
+                mode = str(row.get("mode_guess") or "").strip().lower()
+                line_id = str(row.get("line_id") or "").strip().upper()
+                if not month or not line_id or mode not in {"tram", "bus"}:
+                    continue
+                weight = _parse_int(row.get("event_weight"))
+                key = (month, mode, line_id)
+                by_month_mode_line[key] = by_month_mode_line.get(key, 0) + max(1, weight)
+
+        tram_universe = sorted(TRAM_LINES, key=_line_sort_key)
+        bus_universe = sorted(BUS_LINES | REGIONALBUS_LINES, key=_line_sort_key)
+        months = sorted({str(row.get("month") or "").strip() for row in self.months if str(row.get("month") or "").strip()})
+
+        out: dict[str, dict[str, list[dict]]] = {}
+        for month in months:
+            month_rows: dict[str, list[dict]] = {}
+            for mode, universe in (("tram", tram_universe), ("bus", bus_universe)):
+                rows_for_mode = [
+                    {
+                        "line_id": line_id,
+                        "check_event_count": int(by_month_mode_line.get((month, mode, line_id), 0)),
+                    }
+                    for line_id in universe
+                ]
+                rows_for_mode.sort(key=lambda r: (-int(r["check_event_count"]), _line_sort_key(str(r["line_id"]))))
+                month_rows[mode] = rows_for_mode
+            out[month] = month_rows
         return out
 
 

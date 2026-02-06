@@ -42,6 +42,8 @@
       overview_rate_sub: "Normalisiert nach Tagen im Zeitraum ({metric}).",
       overview_lines_title: "Häufigste kontrollierte Linien",
       overview_lines_sub: "Top-Linien nach erkannten Kontrollen.",
+      month_lines_title: "Häufigste kontrollierte Linien im Monat {month}",
+      month_lines_sub: "Erkannte Kontrollen im ausgewählten Monat.",
       lines_tram: "Tram",
       lines_bus: "Bus",
       lines_no_data: "Keine Linien erkannt",
@@ -108,6 +110,8 @@
       overview_rate_sub: "Normalized by days in range ({metric}).",
       overview_lines_title: "Most checked lines",
       overview_lines_sub: "Top lines by detected checks.",
+      month_lines_title: "Most checked lines in {month}",
+      month_lines_sub: "Detected checks in the selected month.",
       lines_tram: "Tram",
       lines_bus: "Bus",
       lines_no_data: "No lines detected",
@@ -685,6 +689,48 @@
     return wrap;
   }
 
+  function buildLinePlot(title, rows) {
+    const section = document.createElement("div");
+    section.className = "line-plot-block";
+    const hasRows = Array.isArray(rows) && rows.length > 0;
+    section.innerHTML = `<div class="line-plot-title">${title}</div>`;
+    if (!hasRows) {
+      const empty = document.createElement("div");
+      empty.className = "line-stats__empty";
+      empty.textContent = t("lines_no_data");
+      section.appendChild(empty);
+      return section;
+    }
+    const labels = rows.map((row) => String(row.line_id || ""));
+    const values = rows.map((row) => +row.check_event_count || 0);
+    section.appendChild(
+      svgBarChart({
+        labels,
+        displayLabels: labels,
+        values,
+        formatY: (v) => formatInt(Math.round(v)),
+      })
+    );
+    return section;
+  }
+
+  function renderTopLinesCard({ title, subtitle, topLines }) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+        <div class="row">
+          <div>
+            <div class="card__title">${title}</div>
+            <div class="card__sub">${subtitle}</div>
+            <div class="card__sub" style="margin-top:-16px">${t("lines_axis_hint")}</div>
+          </div>
+        </div>
+      `;
+    card.appendChild(buildLinePlot(t("lines_tram"), topLines?.tram || []));
+    card.appendChild(buildLinePlot(t("lines_bus"), topLines?.bus || []));
+    return card;
+  }
+
   function renderOverview() {
     setActiveNav("overview");
     const crumb = state.year ? t("crumb_overview_year", { year: state.year }) : t("crumb_overview");
@@ -787,45 +833,11 @@
       rateCard.appendChild(block);
     });
 
-    const topLinesCard = document.createElement("div");
-    topLinesCard.className = "card";
-    topLinesCard.innerHTML = `
-        <div class="row">
-          <div>
-            <div class="card__title">${t("overview_lines_title")}</div>
-            <div class="card__sub">${t("overview_lines_sub")}</div>
-            <div class="card__sub" style="margin-top:-16px">${t("lines_axis_hint")}</div>
-          </div>
-        </div>
-      `;
-
-    const buildLinePlot = (title, rows) => {
-      const section = document.createElement("div");
-      section.className = "line-plot-block";
-      const hasRows = Array.isArray(rows) && rows.length > 0;
-      section.innerHTML = `<div class="line-plot-title">${title}</div>`;
-      if (!hasRows) {
-        const empty = document.createElement("div");
-        empty.className = "line-stats__empty";
-        empty.textContent = t("lines_no_data");
-        section.appendChild(empty);
-        return section;
-      }
-      const labels = rows.map((row) => String(row.line_id || ""));
-      const values = rows.map((row) => +row.check_event_count || 0);
-      section.appendChild(
-        svgBarChart({
-          labels,
-          displayLabels: labels,
-          values,
-          formatY: (v) => formatInt(Math.round(v)),
-        })
-      );
-      return section;
-    };
-
-    topLinesCard.appendChild(buildLinePlot(t("lines_tram"), state.topLines?.tram || []));
-    topLinesCard.appendChild(buildLinePlot(t("lines_bus"), state.topLines?.bus || []));
+    const topLinesCard = renderTopLinesCard({
+      title: t("overview_lines_title"),
+      subtitle: t("overview_lines_sub"),
+      topLines: state.topLines,
+    });
 
     $("content").innerHTML = `<div class="grid"></div>`;
     const grid = document.querySelector(".grid");
@@ -936,6 +948,13 @@
     $("content").innerHTML = "";
     $("content").appendChild(card);
     $("content").appendChild(statsCard);
+    $("content").appendChild(
+      renderTopLinesCard({
+        title: t("month_lines_title", { month: payload.month }),
+        subtitle: t("month_lines_sub"),
+        topLines: payload.top_lines || { tram: [], bus: [] },
+      })
+    );
   }
 
   function svgHistogram(hours, metric) {
