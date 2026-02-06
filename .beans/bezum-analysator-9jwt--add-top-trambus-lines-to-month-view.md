@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-9jwt
 title: Add top tram/bus lines to month view
-status: in-progress
+status: completed
 type: feature
+priority: normal
 created_at: 2026-02-06T14:17:41Z
-updated_at: 2026-02-06T14:17:41Z
+updated_at: 2026-02-06T14:19:42Z
 ---
 
 Expose month-specific top tram/bus lines in the month API payload and render them in the month view below existing month stats.
