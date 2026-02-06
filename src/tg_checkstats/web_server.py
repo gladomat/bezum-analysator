@@ -10,10 +10,16 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Callable, Dict, Iterable, Tuple
+from urllib.parse import parse_qs
 from wsgiref.simple_server import make_server
 
 from tg_checkstats.analyze import analyze_export
 from tg_checkstats.web_ui import UiArtifacts
+
+try:  # pragma: no cover - python <3.9 fallback
+    from zoneinfo import ZoneInfo
+except ImportError:  # pragma: no cover
+    from backports.zoneinfo import ZoneInfo  # type: ignore
 
 
 _REQUIRED_UI_FILES = [
@@ -143,6 +149,29 @@ def handle_api(*, state: _AppState, path: str, environ) -> tuple[str, list[tuple
             return json_response({"error": str(exc)}, status="400 Bad Request")
     if path == "/api/top-lines":
         return json_response(artifacts.get_top_lines())
+    if path.startswith("/api/predict/line/"):
+        line_id = path.removeprefix("/api/predict/line/").strip("/")
+        qs = parse_qs(environ.get("QUERY_STRING") or "")
+        mode = (qs.get("mode") or ["tram"])[0]
+        weekday_raw = (qs.get("weekday") or [None])[0]
+
+        tz_name = _run_timezone_name(artifacts)
+        now = datetime.now(ZoneInfo(tz_name))
+        current_hour = int(now.hour)
+        current_weekday = int(now.weekday())
+        try:
+            weekday_idx = int(weekday_raw) if weekday_raw is not None else current_weekday
+        except ValueError:
+            return json_response({"error": "weekday must be an int in [0,6]"}, status="400 Bad Request")
+
+        try:
+            payload = artifacts.get_predict_line(line_id=line_id, mode=mode, weekday_idx=weekday_idx)
+        except ValueError as exc:
+            return json_response({"error": str(exc)}, status="400 Bad Request")
+        payload["timezone"] = tz_name
+        payload["current_hour"] = current_hour
+        payload["current_weekday_idx"] = current_weekday
+        return json_response(payload)
 
     return json_response({"error": "not_found"}, status="404 Not Found")
 
@@ -230,6 +259,19 @@ def _stream_request_body_to_file(*, environ, out_path: Path, chunk_size: int = 1
                 remaining -= len(chunk)
 
     return written
+
+
+def _run_timezone_name(artifacts: UiArtifacts) -> str:
+    """Best-effort timezone lookup from run metadata."""
+    try:
+        meta = artifacts.metadata
+        cfg = meta.get("config") if isinstance(meta, dict) else None
+        tz = cfg.get("timezone") if isinstance(cfg, dict) else None
+        if isinstance(tz, str) and tz.strip():
+            return tz.strip()
+    except Exception:
+        pass
+    return "Europe/Berlin"
 
 
 def json_response(payload: object, *, status: str = "200 OK") -> tuple[str, list[tuple[str, str]], bytes]:

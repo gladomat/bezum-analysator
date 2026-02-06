@@ -174,6 +174,105 @@ class UiArtifacts:
             "bus": self.top_lines_by_mode.get("bus", [])[:n] if n is not None else self.top_lines_by_mode.get("bus", []),
         }
 
+    def get_predict_line(
+        self,
+        *,
+        line_id: str,
+        mode: str,
+        weekday_idx: int,
+        prior_alpha: float = 0.5,
+        prior_beta: float = 0.5,
+    ) -> dict:
+        """Return hourly check probabilities for a line on a given weekday.
+
+        This models each (date, hour) bucket as a Bernoulli trial:
+          success = 1 if there is >=1 detected check event for that line in that bucket
+
+        Args:
+            line_id: Line identifier (e.g., "10").
+            mode: "tram" or "bus".
+            weekday_idx: 0=Mon..6=Sun (Berlin-local weekday).
+            prior_alpha: Beta prior alpha.
+            prior_beta: Beta prior beta.
+
+        Returns:
+            A dict with 24 hourly rows containing posterior mean + 95% CI.
+        """
+        normalized_mode = str(mode or "").strip().lower()
+        if normalized_mode not in {"tram", "bus"}:
+            raise ValueError("mode must be 'tram' or 'bus'")
+
+        w = int(weekday_idx)
+        if w < 0 or w > 6:
+            raise ValueError("weekday_idx must be in [0,6]")
+
+        normalized_line = str(line_id or "").strip().upper()
+        if not normalized_line:
+            raise ValueError("line_id required")
+
+        if not _line_in_mode_universe(normalized_line, normalized_mode):
+            raise ValueError("line_id not valid for mode")
+
+        weekday_dates = [d for d, row in self.days_by_date.items() if int(row.get("weekday_idx") or 0) == w]
+        weekday_set = set(weekday_dates)
+        trials = len(weekday_dates)
+
+        successes_by_hour: list[set[str]] = [set() for _ in range(24)]
+        events_path = self.run_dir / "derived" / "events.csv"
+        if events_path.exists() and trials > 0:
+            for row in _read_csv(events_path):
+                if str(row.get("mode_guess") or "").strip().lower() != normalized_mode:
+                    continue
+                if str(row.get("line_id") or "").strip().upper() != normalized_line:
+                    continue
+                day = str(row.get("date_berlin") or "").strip()
+                if day not in weekday_set:
+                    continue
+                hour = _parse_int(row.get("hour"))
+                if 0 <= hour <= 23:
+                    successes_by_hour[hour].add(day)
+
+        hours: list[dict] = []
+        for hour in range(24):
+            successes = len(successes_by_hour[hour])
+            if trials <= 0:
+                hours.append(
+                    {
+                        "hour": hour,
+                        "trials": 0,
+                        "successes": 0,
+                        "prob_mean": None,
+                        "prob_low": None,
+                        "prob_high": None,
+                    }
+                )
+                continue
+
+            posterior = beta_posterior_summary(
+                trials=trials,
+                successes=successes,
+                prior_alpha=prior_alpha,
+                prior_beta=prior_beta,
+            )
+            hours.append(
+                {
+                    "hour": hour,
+                    "trials": trials,
+                    "successes": successes,
+                    "prob_mean": posterior.mean,
+                    "prob_low": posterior.ci_low,
+                    "prob_high": posterior.ci_high,
+                }
+            )
+
+        return {
+            "line_id": normalized_line,
+            "mode": normalized_mode,
+            "weekday_idx": w,
+            "weekday": _weekday_label(w),
+            "hours": hours,
+        }
+
     def get_week(self, week_start_date: str) -> dict:
         """Return week detail payload for a given Monday week start date."""
         start = date.fromisoformat(week_start_date)
@@ -435,6 +534,17 @@ def _line_sort_key(line_id: str) -> tuple[int, str]:
     if value.isdigit():
         return (0, f"{int(value):04d}")
     return (1, value)
+
+
+def _line_in_mode_universe(line_id: str, mode: str) -> bool:
+    """Return True if line_id is a known line for the requested mode."""
+    value = str(line_id).strip().upper()
+    base = value[:-1] if value != "E" and value.endswith("E") else value
+    if mode == "tram":
+        return base in TRAM_LINES
+    if mode == "bus":
+        return base in (BUS_LINES | REGIONALBUS_LINES)
+    return False
 
 
 def _posterior_payload(posterior: BetaPosteriorSummary | None) -> dict:

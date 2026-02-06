@@ -17,6 +17,7 @@
       nav_overview: "Übersicht",
       nav_month: "Monat",
       nav_week: "Woche",
+      nav_predict: "Prognose",
       hint_title: "Lokale UI",
       hint_text: "Lokal, kann Exporte hochladen und neue Runs analysieren.",
       label_upload: "Upload",
@@ -52,6 +53,15 @@
       month_next: "Nächster Monat",
       month_title: "Monat {month}",
       month_sub: "Wochen (Zeilen) × Wochentage (Spalten). Klicke auf ein Wochenlabel für die Wochenansicht.",
+      predict_title: "Prognose: Kontrolle nach Uhrzeit",
+      predict_sub: "P(>=1 Kontrolle) für die ausgewählte Linie am heutigen Wochentag (alle Daten).",
+      predict_mode: "Modus",
+      predict_line: "Linie",
+      predict_now: "Jetzt",
+      predict_weekday: "Wochentag",
+      predict_hour: "Stunde",
+      predict_n: "n={n} Tage",
+      predict_no_data: "Zu wenig Daten für diesen Wochentag.",
       weekday_means_title: "Wochentagsmittel",
       weekday_means_sub: "Mittelwert pro Wochentag innerhalb des ausgewählten Monatszeitraums.",
       posterior_section_title: "A-Posteriori-Wahrscheinlichkeit einer Kontrolle",
@@ -85,6 +95,7 @@
       nav_overview: "Overview",
       nav_month: "Month",
       nav_week: "Week",
+      nav_predict: "Predict",
       hint_title: "Local UI",
       hint_text: "Local UI; can upload exports and analyze new runs.",
       label_upload: "Upload",
@@ -120,6 +131,15 @@
       month_next: "Next month",
       month_title: "Month {month}",
       month_sub: "Weeks (rows) × weekdays (columns). Click a week label to open the week detail.",
+      predict_title: "Predict: checks by hour",
+      predict_sub: "P(>=1 check) for the selected line on today’s weekday (all data).",
+      predict_mode: "Mode",
+      predict_line: "Line",
+      predict_now: "Now",
+      predict_weekday: "Weekday",
+      predict_hour: "Hour",
+      predict_n: "n={n} days",
+      predict_no_data: "Not enough data for this weekday.",
       weekday_means_title: "Weekday Means",
       weekday_means_sub: "Mean per weekday within the selected month range.",
       posterior_section_title: "Posterior probability of being checked",
@@ -1045,6 +1065,7 @@
     const w = path.match(/^\/week\/(\d{4}-\d{2}-\d{2})$/);
     if (w) return { route: "week", week: w[1] };
     if (path === "/week") return { route: "week", week: null };
+    if (path === "/predict") return { route: "predict" };
     return { route: "overview" };
   }
 
@@ -1110,7 +1131,188 @@
       const payload = await api(`/api/week/${week}`);
       return renderWeek(payload);
     }
+    if (route === "predict") return renderPredict();
     return renderOverview();
+  }
+
+  function modeLabel(mode) {
+    return String(mode) === "bus" ? t("lines_bus") : t("lines_tram");
+  }
+
+  function formatPct(p) {
+    if (p == null || Number.isNaN(+p)) return "—";
+    return `${Math.round(+p * 100)}%`;
+  }
+
+  function svgProbWhiskerChart(rows, currentHour) {
+    const w = 900;
+    const h = 220;
+    const padL = 56;
+    const padR = 18;
+    const padT = 16;
+    const padB = 34;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+    const barW = Math.max(6, plotW / 24 - 2);
+
+    const y = (p) => padT + plotH - plotH * Math.min(1, Math.max(0, +p || 0));
+
+    const yTicks = [0, 0.25, 0.5, 0.75, 1].map((v) => {
+      const yy = y(v);
+      const label = `${Math.round(v * 100)}%`;
+      return `
+        <line x1="${padL}" y1="${yy}" x2="${w - padR}" y2="${yy}" stroke="var(--border)" stroke-dasharray="4" stroke-width="1"></line>
+        <text x="${padL - 10}" y="${yy + 4}" text-anchor="end" font-size="13" fill="var(--text-muted)">${label}</text>
+      `;
+    }).join("");
+
+    const bars = (rows || []).map((r) => {
+      const hour = +r.hour || 0;
+      const mean = r.prob_mean;
+      const lo = r.prob_low;
+      const hi = r.prob_high;
+      const x0 = padL + hour * (barW + 2);
+      const isNow = currentHour != null && hour === +currentHour;
+      const bh = Math.round(plotH * (mean == null ? 0 : Math.min(1, Math.max(0, +mean))));
+      const yy = padT + plotH - bh;
+      const title = [
+        `${String(hour).padStart(2, "0")}:00`,
+        `P ${formatPct(mean)}`,
+        `95% [${formatPct(lo)}, ${formatPct(hi)}]`,
+        `trials=${r.trials} successes=${r.successes}`,
+      ].join("\n");
+
+      const whisker = (lo == null || hi == null)
+        ? ""
+        : (() => {
+          const yLo = y(lo);
+          const yHi = y(hi);
+          const cx = x0 + barW / 2;
+          return `
+            <line x1="${cx}" y1="${yHi}" x2="${cx}" y2="${yLo}" stroke="var(--text-main)" stroke-width="1.5" opacity="0.8"></line>
+            <line x1="${cx - 6}" y1="${yHi}" x2="${cx + 6}" y2="${yHi}" stroke="var(--text-main)" stroke-width="1.5" opacity="0.8"></line>
+            <line x1="${cx - 6}" y1="${yLo}" x2="${cx + 6}" y2="${yLo}" stroke="var(--text-main)" stroke-width="1.5" opacity="0.8"></line>
+          `;
+        })();
+
+      return `
+        <g class="bar">
+          <title>${title}</title>
+          <rect x="${x0}" y="${yy}" width="${barW}" height="${bh}" rx="4" fill="${isNow ? "var(--primary-hover)" : "var(--primary)"}" stroke="${isNow ? "var(--text-main)" : "transparent"}" stroke-width="${isNow ? 1.5 : 0}"></rect>
+          ${whisker}
+        </g>
+      `;
+    }).join("");
+
+    const xTicks = Array.from({ length: 24 }, (_, hr) => hr).filter((hr) => hr % 2 === 0 || hr === 23).map((hr) => {
+      const x0 = padL + hr * (barW + 2) + barW / 2;
+      const label = String(hr).padStart(2, "0");
+      return `<text x="${x0}" y="${h - 8}" text-anchor="middle" font-size="12" fill="var(--text-sub)">${label}</text>`;
+    }).join("");
+
+    const svg = `
+      <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
+        ${yTicks}
+        ${bars}
+        ${xTicks}
+      </svg>
+    `;
+    const wrap = document.createElement("div");
+    wrap.className = "chart-container";
+    wrap.innerHTML = svg;
+    return wrap;
+  }
+
+  async function renderPredict() {
+    setActiveNav("predict");
+    setCrumbs([{ text: state.run.run_id, bold: false }, { text: t("nav_predict"), bold: true }]);
+    setMetaPill(`${t("meta_loaded")} • ${t("nav_predict")}`);
+
+    const tramLines = (state.topLines?.tram || []).map((r) => String(r.line_id || "")).filter(Boolean);
+    const busLines = (state.topLines?.bus || []).map((r) => String(r.line_id || "")).filter(Boolean);
+
+    const storedMode = localStorage.getItem("tg-checkstats.predict.mode") || "tram";
+    const mode = storedMode === "bus" ? "bus" : "tram";
+    const lines = mode === "bus" ? busLines : tramLines;
+    const storedLine = localStorage.getItem("tg-checkstats.predict.line") || "";
+    const line = lines.includes(storedLine) ? storedLine : (lines[0] || "");
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card__title">${t("predict_title")}</div>
+      <div class="card__sub">${t("predict_sub")}</div>
+      <div class="predict-controls">
+        <div class="toggle">
+          <label class="toggle__label" for="predictMode">${t("predict_mode")}</label>
+          <div class="select-wrapper">
+            <select id="predictMode">
+              <option value="tram">${modeLabel("tram")}</option>
+              <option value="bus">${modeLabel("bus")}</option>
+            </select>
+            <div class="select-arrow">
+              <svg class="lucide" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="toggle">
+          <label class="toggle__label" for="predictLine">${t("predict_line")}</label>
+          <div class="select-wrapper">
+            <select id="predictLine"></select>
+            <div class="select-arrow">
+              <svg class="lucide" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="predictMeta" class="card__sub" style="margin-top:10px;margin-bottom:0"></div>
+      <div id="predictChart" style="margin-top:14px"></div>
+    `;
+
+    const lineSelect = card.querySelector("#predictLine");
+    const modeSelect = card.querySelector("#predictMode");
+    modeSelect.value = mode;
+    lineSelect.innerHTML = lines.map((l) => `<option value="${l}">${l}</option>`).join("");
+    lineSelect.value = line;
+
+    const load = async (m, l) => {
+      if (!l) {
+        card.querySelector("#predictMeta").textContent = t("predict_no_data");
+        card.querySelector("#predictChart").innerHTML = "";
+        return;
+      }
+      const payload = await api(`/api/predict/line/${encodeURIComponent(l)}?mode=${encodeURIComponent(m)}`);
+      const weekday = payload.weekday ? displayWeekday(payload.weekday) : "—";
+      const currentHour = payload.current_hour;
+      const rowNow = (payload.hours || []).find((r) => +r.hour === +currentHour) || null;
+      const trials = rowNow ? rowNow.trials : 0;
+      const meta = `${t("predict_weekday")}: ${weekday} • ${t("predict_hour")}: ${String(currentHour).padStart(2, "0")}:00 • ${t("predict_n", { n: trials })} • ${t("predict_now")}: ${formatPct(rowNow ? rowNow.prob_mean : null)} (95% [${formatPct(rowNow ? rowNow.prob_low : null)}, ${formatPct(rowNow ? rowNow.prob_high : null)}])`;
+      card.querySelector("#predictMeta").textContent = meta;
+      card.querySelector("#predictChart").innerHTML = "";
+      card.querySelector("#predictChart").appendChild(svgProbWhiskerChart(payload.hours || [], currentHour));
+    };
+
+    modeSelect.addEventListener("change", () => {
+      const m = modeSelect.value === "bus" ? "bus" : "tram";
+      localStorage.setItem("tg-checkstats.predict.mode", m);
+      localStorage.removeItem("tg-checkstats.predict.line");
+      navigate("/predict");
+    });
+    lineSelect.addEventListener("change", () => {
+      const l = lineSelect.value || "";
+      localStorage.setItem("tg-checkstats.predict.line", l);
+      load(modeSelect.value, l).catch((err) => console.error(err));
+    });
+
+    $("content").innerHTML = "";
+    $("content").appendChild(card);
+    await load(mode, line);
   }
 
   async function init() {

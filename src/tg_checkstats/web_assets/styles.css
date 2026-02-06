@@ -370,6 +370,13 @@ a {
   pointer-events: none;
 }
 
+.predict-controls {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
 /* Content */
 .content {
   flex: 1;
@@ -756,6 +763,10 @@ a {
 
   .toggle {
     min-width: 120px;
+  }
+
+  .predict-controls {
+    gap: 12px;
   }
 
   .grid {

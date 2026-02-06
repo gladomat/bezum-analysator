@@ -16,7 +16,15 @@ from tg_checkstats.analyze import analyze_export
 from tg_checkstats.web_server import create_app
 
 
-def _call_wsgi_app(app: Callable, *, method: str, path: str, body: bytes = b"", content_type: str = "") -> tuple[str, bytes]:
+def _call_wsgi_app(
+    app: Callable,
+    *,
+    method: str,
+    path: str,
+    body: bytes = b"",
+    content_type: str = "",
+    query_string: str = "",
+) -> tuple[str, bytes]:
     """Call a WSGI app and return (status, body_bytes)."""
     headers: dict[str, str] = {}
     captured: dict[str, Any] = {}
@@ -29,6 +37,7 @@ def _call_wsgi_app(app: Callable, *, method: str, path: str, body: bytes = b"", 
     environ: dict[str, Any] = {
         "REQUEST_METHOD": method,
         "PATH_INFO": path,
+        "QUERY_STRING": query_string or "",
         "wsgi.input": BytesIO(body),
         "CONTENT_LENGTH": str(len(body)),
     }
@@ -122,3 +131,39 @@ def test_top_lines_api_returns_tram_and_bus_rankings(tmp_path: Path) -> None:
     tram_line_1 = next((row for row in payload["tram"] if row["line_id"] == "1"), None)
     assert tram_line_1 is not None
     assert tram_line_1["check_event_count"] == 0
+
+
+def test_predict_api_returns_24_hours_and_posterior_fields(tmp_path: Path) -> None:
+    """`/api/predict/line/<id>` returns 24-hour posterior rows."""
+    run_dir = tmp_path / "run"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "raw").mkdir(parents=True, exist_ok=True)
+    export_path = run_dir / "raw" / "export.json"
+    export_path.write_text(
+        json.dumps(
+            [
+                {"id": 1, "date": "2024-01-01T10:00:00+01:00", "text": "2k tram 10"},
+                {"id": 2, "date": "2024-01-08T10:00:00+01:00", "text": "Kontis tram 10"},
+                {"id": 3, "date": "2024-01-15T10:00:00+01:00", "text": "nope"},
+            ]
+        ),
+        encoding="utf-8",
+    )
+    analyze_export(export_path, run_dir)
+    app = create_app(run_dir=run_dir)
+
+    status, body = _call_wsgi_app(
+        app,
+        method="GET",
+        path="/api/predict/line/10",
+        query_string="mode=tram&weekday=0",
+    )
+    assert status.startswith("200")
+    payload = json.loads(body.decode("utf-8"))
+
+    assert payload["line_id"] == "10"
+    assert payload["mode"] == "tram"
+    assert payload["weekday_idx"] == 0
+    assert len(payload["hours"]) == 24
+    row0 = payload["hours"][0]
+    assert {"hour", "trials", "successes", "prob_mean", "prob_low", "prob_high"}.issubset(row0.keys())
