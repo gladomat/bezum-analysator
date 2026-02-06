@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-u2uo
 title: 'Predict tab: line check probability by hour'
-status: in-progress
+status: completed
 type: feature
+priority: normal
 created_at: 2026-02-06T14:44:51Z
-updated_at: 2026-02-06T14:44:51Z
+updated_at: 2026-02-06T14:51:52Z
 ---
 
 Add a new Predict tab that lets the user pick a tram/bus line and shows, for the current weekday, the posterior probability of >=1 detected check per hour (0-23) across all run data. Render as 24-bar chart with 95% CI whiskers and highlight current hour.
