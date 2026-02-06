@@ -1,0 +1,13 @@
+# Minimal production requirements for deploying the Web UI on Render.
+#
+# Notes:
+# - SciPy is optional; tg-checkstats falls back to a normal approximation when missing.
+# - Dev/test tools (pytest, jupyter, etc.) are intentionally excluded.
+click==8.1.7
+python-dotenv==1.0.1
+ijson==3.2.3
+python-dateutil==2.9.0.post0
+tzdata==2025.1
+pandas==2.2.3
+gunicorn>=21.2.0
+

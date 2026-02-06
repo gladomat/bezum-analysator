@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: tg-checkstats
+    runtime: python
+    plan: free
+    healthCheckPath: /api/run
+    buildCommand: pip install -r requirements-render.txt && pip install -e . --no-deps
+    startCommand: gunicorn tg_checkstats.wsgi:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: TG_CHECKSTATS_RUN_DIR
+        value: /var/data/tg-checkstats/run/current
+    disk:
+      name: tg-checkstats-data
+      mountPath: /var/data
+      sizeGB: 1
+

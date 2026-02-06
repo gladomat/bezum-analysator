@@ -12,17 +12,15 @@ dependencies = [
   "ijson>=3.2.3",
   "python-dateutil>=2.9.0.post0",
   "tzdata>=2025.1",
-  "jupyterlab>=4.5.3",
   "pandas>=2.3.3",
-  "matplotlib>=3.10.8",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest>=8.3.4",
-  "pandas>=2.2.3",
+  "jupyterlab>=4.5.3",
   "ipykernel>=6.29.0",
-  "matplotlib>=3.8.0",
+  "matplotlib>=3.10.8",
 ]
 bayes = [
   "scipy>=1.11.0",

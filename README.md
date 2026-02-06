@@ -49,3 +49,28 @@ RUNS_DIR=runs RUN_ID=full_export_1 ./scripts/tg_checkstats_run.sh https://t.me/f
 # Explicit run directory name
 RUN_NAME=freifahren_full ./scripts/tg_checkstats_run.sh https://t.me/freifahren_leipzig
 ```
+
+## Deploy to Render (Web UI)
+
+This repo ships a `render.yaml` blueprint that deploys the Web UI as a Render Web Service.
+The deployed UI supports uploading Telegram exports (`/api/upload`) and will analyze them
+server-side.
+
+### Option A: Blueprint (recommended)
+
+1. Push this repo to GitHub.
+2. In Render: **New** → **Blueprint** → select the repo.
+3. Create the service.
+
+The service uses:
+- Build: installs `requirements-render.txt` and installs the package (`pip install -e . --no-deps`)
+- Start: `gunicorn tg_checkstats.wsgi:app --bind 0.0.0.0:$PORT ...`
+
+### Data persistence (uploads)
+
+Uploaded exports + derived artifacts are written under the `TG_CHECKSTATS_RUN_DIR` parent directory.
+The blueprint config mounts a persistent disk at `/var/data` and sets:
+
+- `TG_CHECKSTATS_RUN_DIR=/var/data/tg-checkstats/run/current`
+
+If you deploy without a disk, the default run dir is under `/tmp` and uploads will be lost on restart.
