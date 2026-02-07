@@ -10,4 +10,4 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: TG_CHECKSTATS_RUN_DIR
-        value: /tmp/tg-checkstats/run/current
+        value: runs/freifahren_leipzig_20260204_144216/
