@@ -69,8 +69,9 @@ The service uses:
 ### Data persistence (uploads)
 
 Uploaded exports + derived artifacts are written under the `TG_CHECKSTATS_RUN_DIR` parent directory.
-The blueprint config mounts a persistent disk at `/var/data` and sets:
+On Render's Free plan the filesystem is ephemeral, so uploads will be lost when the service restarts / spins down.
+The blueprint defaults to:
 
-- `TG_CHECKSTATS_RUN_DIR=/var/data/tg-checkstats/run/current`
+- `TG_CHECKSTATS_RUN_DIR=/tmp/tg-checkstats/run/current`
 
-If you deploy without a disk, the default run dir is under `/tmp` and uploads will be lost on restart.
+If you want persistence, use a paid plan and attach a persistent disk, then point `TG_CHECKSTATS_RUN_DIR` at a path under the disk mount (for example: `/var/data/tg-checkstats/run/current`).
