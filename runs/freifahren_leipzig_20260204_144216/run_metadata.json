@@ -1,0 +1,84 @@
+{
+  "assumptions": {
+    "naive_timestamp_count": 0,
+    "naive_timestamps_treated_as_utc": true
+  },
+  "auth": {
+    "api_hash_present": false,
+    "api_hash_sha256_prefix": null,
+    "api_id_last4": null
+  },
+  "commands": {
+    "telegram_download_chat_argv": null,
+    "tg_checkstats_argv": [
+      "/Users/glad/.cache/uv/builds-v0/.tmpIz7i4A/bin/tg-checkstats",
+      "analyze",
+      "--input",
+      "runs/freifahren_leipzig_20260204_144216/raw/export.json",
+      "--out",
+      "runs/freifahren_leipzig_20260204_144216",
+      "--force"
+    ]
+  },
+  "config": {
+    "event_count_policy": "message",
+    "export_retry_count": null,
+    "export_retry_delay_seconds": null,
+    "include_bots": true,
+    "include_forwards": true,
+    "include_service": false,
+    "k_max": 20,
+    "keywords": [
+      "Kontrollettis",
+      "Kontrolleure",
+      "Kontis"
+    ],
+    "text_trunc_len": 500,
+    "timezone": "Europe/Berlin"
+  },
+  "counts": {
+    "events_matched_both": 468,
+    "events_matched_k_token_only": 36900,
+    "events_matched_keyword_only": 1008,
+    "events_matched_total": 45115,
+    "events_weight_both": 468,
+    "events_weight_k_token_only": 36900,
+    "events_weight_keyword_only": 1008,
+    "events_weight_total": 45115,
+    "messages_caption_non_string": 0,
+    "messages_excluded_bot": 0,
+    "messages_excluded_duplicate_id": 0,
+    "messages_excluded_forward": 0,
+    "messages_excluded_invalid_timestamp": 0,
+    "messages_excluded_no_message_id": 0,
+    "messages_excluded_no_timestamp": 0,
+    "messages_excluded_service": 5105,
+    "messages_included": 71044,
+    "messages_scanned": 76149,
+    "messages_text_non_string": 0,
+    "naive_timestamp_count": 0
+  },
+  "dataset": {
+    "end_berlin_date": "2026-02-04",
+    "start_berlin_date": "2017-06-20",
+    "total_days_in_range": 3152
+  },
+  "environment": {
+    "platform": "macOS-15.1-arm64-arm-64bit-Mach-O",
+    "python_version": "3.14.2"
+  },
+  "input": {
+    "chat_identifier_normalized": null,
+    "chat_identifier_raw": null,
+    "raw_export_path": "runs/freifahren_leipzig_20260204_144216/raw/export.json",
+    "raw_export_sha256": "bddb23b5d0924a788b124a8d3dbb05a60d9a22fd67da6dc0f8e1fa66fb93b61b"
+  },
+  "timestamps": {
+    "analyze_completed_utc": "2026-02-05T21:08:29.247844Z",
+    "analyze_started_utc": "2026-02-05T21:08:26.694868Z"
+  },
+  "tool_versions": {
+    "analyzer": "0.1.0",
+    "telegram_download_chat": null
+  }
+}
