@@ -26,7 +26,7 @@
       upload_running: "Analysiere…",
       upload_done: "Upload fertig",
       page_title_full: "Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig",
-      page_title_mobile: "Saisonalität",
+      page_title_mobile: "Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig",
       label_metric: "Metrik",
       label_year: "Jahr",
       label_lang: "Sprache",
@@ -133,7 +133,7 @@
       upload_running: "Analyzing…",
       upload_done: "Upload done",
       page_title_full: "Fare inspection seasonality analysis in Leipzig",
-      page_title_mobile: "Seasonality",
+      page_title_mobile: "Fare inspection seasonality analysis in Leipzig",
       label_metric: "Metric",
       label_year: "Year",
       label_lang: "Language",
@@ -673,18 +673,25 @@
   }
 
   function svgBarChart({ labels, displayLabels, values, onClick, formatY }) {
-    const minBarPitch = 26;
-    const w = Math.max(900, labels.length * minBarPitch + 100);
-    const h = 180;
-    const padL = 72;
-    const padR = 18;
-    const padT = 26;
-    const padB = 30;
+    const viewportWidth = Math.max(320, window.innerWidth || 0);
+    const isMobile = viewportWidth <= 900;
+    const h = isMobile ? 160 : 180;
+    const padL = isMobile ? 48 : 72;
+    const padR = isMobile ? 10 : 18;
+    const padT = isMobile ? 18 : 26;
+    const padB = isMobile ? 26 : 30;
+    const labelCount = Math.max(1, labels.length);
+    const preferredPitch = isMobile ? 15 : 24;
+    const minChartWidth = isMobile ? 320 : 520;
+    const w = Math.max(minChartWidth, padL + padR + labelCount * preferredPitch);
     const allZero = values.length > 0 && values.every((v) => v === 0);
     const max = Math.max(1, ...values);
     const plotW = w - padL - padR;
     const plotH = h - padT - padB;
-    const barW = Math.max(2, plotW / values.length - 2);
+    const gap = isMobile ? 4 : 3;
+    const rawBarWidth = (plotW - gap * (labelCount - 1)) / labelCount;
+    const barW = Math.max(1.5, Math.min(isMobile ? 11 : 20, rawBarWidth));
+    const pitch = barW + gap;
     const labelText = displayLabels && displayLabels.length === labels.length ? displayLabels : labels;
 
     const yearGroups = [];
@@ -700,14 +707,14 @@
     const yearBg = yearGroups.length > 1
       ? yearGroups
         .map((g, idx) => {
-          const x0 = padL + g.start * (barW + 2) - 2;
-          const x1 = padL + (g.end + 1) * (barW + 2);
+          const x0 = padL + g.start * pitch - 2;
+          const x1 = padL + (g.end + 1) * pitch;
           const width = Math.max(0, x1 - x0);
           const fill = idx % 2 === 0 ? "var(--surface-alt)" : "transparent";
           const labelX = Math.max(padL, x0 + 6);
           return `
             <rect x="${x0}" y="${padT - 10}" width="${width}" height="${h - padT - 6}" rx="10" fill="${fill}"></rect>
-            <text x="${labelX}" y="${padT - 2}" font-size="14" fill="var(--text-muted)" font-weight="600">${g.year}</text>
+            <text x="${labelX}" y="${padT - 2}" font-size="${isMobile ? 12 : 14}" fill="var(--text-muted)" font-weight="600">${g.year}</text>
           `;
         })
         .join("")
@@ -720,14 +727,14 @@
         const label = formatY ? formatY(v) : formatNumber(v);
         return `
           <line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="var(--border)" stroke-dasharray="4" stroke-width="1"></line>
-          <text x="${padL - 10}" y="${y + 4}" text-anchor="end" font-size="13" fill="var(--text-muted)">${label}</text>
+          <text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="${isMobile ? 11 : 13}" fill="var(--text-muted)">${label}</text>
         `;
       })
       .join("");
 
     const bars = values
       .map((v, i) => {
-        const x = padL + i * (barW + 2);
+        const x = padL + i * pitch;
         const bh = Math.round((plotH * v) / max);
         const y = padT + plotH - bh;
         const title = `${monthName(labels[i])}: ${formatY ? formatY(v) : formatNumber(v)}`;
@@ -737,12 +744,18 @@
         </g>`;
       })
       .join("");
-    const step = labelText.length <= 12 ? 1 : labelText.length <= 24 ? 2 : Math.ceil(labelText.length / 10);
+    const step = labelText.length <= (isMobile ? 8 : 12)
+      ? 1
+      : labelText.length <= (isMobile ? 16 : 24)
+        ? 2
+        : Math.ceil(labelText.length / (isMobile ? 8 : 10));
     const ticks = labelText
-      .map((l, i) => (i % step === 0 ? `<text x="${padL + i * (barW + 2)}" y="${h - 6}" font-size="13" fill="var(--text-sub)">${l}</text>` : ""))
+      .map((l, i) => (i % step === 0 ? `<text x="${padL + i * pitch + barW / 2}" y="${h - 6}" text-anchor="middle" font-size="${isMobile ? 11 : 13}" fill="var(--text-sub)">${l}</text>` : ""))
       .join("");
+    const scrollable = labelCount > (isMobile ? 30 : 42);
+    const svgWidthStyle = scrollable ? `${w}px` : "100%";
     const svg = `
-      <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
+      <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none" style="width:${svgWidthStyle};height:${h}px;display:block">
         <rect x="0" y="0" width="${w}" height="${h}" rx="12" fill="transparent"></rect>
         ${yearBg}
         ${yTicks}
@@ -753,10 +766,9 @@
       }
           ${ticks}
         </svg>
-      `;
+    `;
     const wrap = document.createElement("div");
-    wrap.className = "chart-container";
-    wrap.style.overflowX = "auto";
+    wrap.className = `chart-container${scrollable ? " chart-container--scrollable" : ""}`;
     wrap.innerHTML = svg;
     if (typeof onClick === "function") {
       wrap.querySelectorAll(".bar").forEach((g) => {
@@ -1205,15 +1217,19 @@
   }
 
   function svgProbWhiskerChart(rows, currentHour) {
-    const w = 900;
-    const h = 220;
-    const padL = 56;
-    const padR = 18;
-    const padT = 16;
-    const padB = 34;
+    const viewportWidth = Math.max(320, window.innerWidth || 0);
+    const isMobile = viewportWidth <= 900;
+    const w = isMobile ? 620 : 900;
+    const h = isMobile ? 180 : 220;
+    const padL = isMobile ? 44 : 56;
+    const padR = isMobile ? 10 : 18;
+    const padT = isMobile ? 14 : 16;
+    const padB = isMobile ? 28 : 34;
     const plotW = w - padL - padR;
     const plotH = h - padT - padB;
-    const barW = Math.max(6, plotW / 24 - 2);
+    const gap = isMobile ? 3 : 2;
+    const barW = Math.max(4, Math.min(isMobile ? 10 : 18, (plotW - gap * 23) / 24));
+    const pitch = barW + gap;
 
     const y = (p) => padT + plotH - plotH * Math.min(1, Math.max(0, +p || 0));
 
@@ -1222,7 +1238,7 @@
       const label = `${Math.round(v * 100)}%`;
       return `
         <line x1="${padL}" y1="${yy}" x2="${w - padR}" y2="${yy}" stroke="var(--border)" stroke-dasharray="4" stroke-width="1"></line>
-        <text x="${padL - 10}" y="${yy + 4}" text-anchor="end" font-size="13" fill="var(--text-muted)">${label}</text>
+        <text x="${padL - 8}" y="${yy + 4}" text-anchor="end" font-size="${isMobile ? 11 : 13}" fill="var(--text-muted)">${label}</text>
       `;
     }).join("");
 
@@ -1231,7 +1247,7 @@
       const mean = r.prob_mean;
       const lo = r.prob_low;
       const hi = r.prob_high;
-      const x0 = padL + hour * (barW + 2);
+      const x0 = padL + hour * pitch;
       const isNow = currentHour != null && hour === +currentHour;
       const bh = Math.round(plotH * (mean == null ? 0 : Math.min(1, Math.max(0, +mean))));
       const yy = padT + plotH - bh;
@@ -1265,13 +1281,13 @@
     }).join("");
 
     const xTicks = Array.from({ length: 24 }, (_, hr) => hr).filter((hr) => hr % 2 === 0 || hr === 23).map((hr) => {
-      const x0 = padL + hr * (barW + 2) + barW / 2;
+      const x0 = padL + hr * pitch + barW / 2;
       const label = String(hr).padStart(2, "0");
-      return `<text x="${x0}" y="${h - 8}" text-anchor="middle" font-size="12" fill="var(--text-sub)">${label}</text>`;
+      return `<text x="${x0}" y="${h - 8}" text-anchor="middle" font-size="${isMobile ? 10 : 12}" fill="var(--text-sub)">${label}</text>`;
     }).join("");
 
     const svg = `
-      <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
+      <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none" style="width:100%;height:${h}px;display:block">
         ${yTicks}
         ${bars}
         ${xTicks}

@@ -484,6 +484,17 @@ a {
   border: 1px dashed var(--border);
   border-radius: var(--radius);
   padding: 4px;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.chart-container--scrollable {
+  overflow-x: auto;
+}
+
+.chart-container .svg {
+  display: block;
+  max-width: 100%;
 }
 
 .bar:hover rect {
@@ -943,10 +954,12 @@ a {
 
   .header__title-mobile {
     display: block;
-    font-size: 44px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 0.95;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 
   .crumbs {
@@ -1022,6 +1035,16 @@ a {
     gap: 14px;
   }
 
+  .row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .row__right {
+    font-size: 12px;
+  }
+
   .heatmap__week {
     padding-right: 0;
   }
@@ -1078,6 +1101,6 @@ a {
   }
 
   .header__title-mobile {
-    font-size: 38px;
+    font-size: 17px;
   }
 }
