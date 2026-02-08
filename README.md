@@ -305,4 +305,4 @@ uv run pytest
 
 ## License 📄
 
-MIT (see `LICENSE`).
+GNU GPL (see `LICENSE`).
