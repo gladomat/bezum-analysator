@@ -847,9 +847,14 @@ a {
   }
 
   .heatmap {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+  }
+
+  /* Make heatmap scrollable if needed or stack */
+  .heatmap {
+    overflow-x: auto;
+    padding-bottom: 10px;
+    /* Space for scrollbar */
   }
 
   .heatmap__head {
@@ -859,6 +864,13 @@ a {
   .heatmap__week {
     justify-content: flex-start;
     margin-bottom: 8px;
+    min-width: 80px;
+    /* Ensure label doesn't squash */
+  }
+
+  /* Ensure heatmap tiles don't get too small */
+  .heatmap>div:not(.heatmap__week):not(.heatmap__head) {
+    min-width: 40px;
   }
 
   .help-grid {
@@ -904,6 +916,8 @@ a {
     border-top: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);
+    z-index: 100;
+    /* Ensure nav is above everything */
   }
 
   .brand,
@@ -959,6 +973,8 @@ a {
     letter-spacing: -0.01em;
     line-height: 1.3;
     overflow-wrap: break-word;
+    /* Fix title overflow */
+    word-break: break-word;
     hyphens: auto;
   }
 
@@ -1018,8 +1034,12 @@ a {
   }
 
   .card {
-    padding: 14px;
+    padding: 16px;
+    /* Slightly reduced padding */
     border-radius: 12px;
+    max-width: 100%;
+    overflow: hidden;
+    /* Prevent card overflow */
   }
 
   .card__title {
@@ -1062,14 +1082,29 @@ a {
     font-size: 15px;
   }
 
+  /* Fix Probability Grid Overflow */
   .probgrid {
     gap: 8px;
     margin-top: 14px;
+    /* Force grid to be scrollable if it is too wide, or wrap */
+    /* Since js sets columns, simple wrap won't work easily without !important override of template-columns */
+    /* Let's try making it scrollable horizontally */
+    display: grid;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    /* Ensure minimum widths for cells so they don't squash */
+  }
+
+  .probcell {
+    min-width: 80px;
+    /* Force minimum width */
   }
 
   .timewins {
     margin-top: 16px;
     padding: 12px;
+    overflow-x: hidden;
+    /* Prevent overflow */
   }
 
   .timewins__axis {
@@ -1080,10 +1115,30 @@ a {
     grid-template-columns: 1fr;
     gap: 6px;
     margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timewins__label {
+    margin-bottom: 4px;
+  }
+
+  .timewins__bar {
+    width: 100%;
   }
 
   .timewins__text {
     text-align: left;
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  /* Help Page Fixes */
+  .help-section {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
   }
 }
 

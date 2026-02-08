@@ -675,24 +675,33 @@
   function svgBarChart({ labels, displayLabels, values, onClick, formatY }) {
     const viewportWidth = Math.max(320, window.innerWidth || 0);
     const isMobile = viewportWidth <= 900;
-    const h = isMobile ? 160 : 180;
+    const h = isMobile ? 220 : 250; // Increased height for better aspect ratio
     const padL = isMobile ? 48 : 72;
     const padR = isMobile ? 10 : 18;
-    const padT = isMobile ? 18 : 26;
-    const padB = isMobile ? 26 : 30;
+    const padT = isMobile ? 24 : 26;
+    const padB = isMobile ? 30 : 34;
     const labelCount = Math.max(1, labels.length);
-    const preferredPitch = isMobile ? 15 : 24;
+    const preferredPitch = isMobile ? 32 : 40; // Wider bars for better touch/readability
     const minChartWidth = isMobile ? 320 : 520;
     const w = Math.max(minChartWidth, padL + padR + labelCount * preferredPitch);
+
+    // Scroll if the desired width is wider than the available content area (screen - padding)
+    const availableWidth = viewportWidth - (isMobile ? 32 : 64);
+    const scrollable = w > availableWidth;
+
     const allZero = values.length > 0 && values.every((v) => v === 0);
     const max = Math.max(1, ...values);
     const plotW = w - padL - padR;
     const plotH = h - padT - padB;
-    const gap = isMobile ? 4 : 3;
+    const gap = isMobile ? 6 : 8;
     const rawBarWidth = (plotW - gap * (labelCount - 1)) / labelCount;
-    const barW = Math.max(1.5, Math.min(isMobile ? 11 : 20, rawBarWidth));
-    const pitch = barW + gap;
+    const barW = Math.max(4, Math.min(isMobile ? 24 : 32, rawBarWidth));
+    const pitch = barW + gap; // Recalculate pitch based on actual bar width logic
     const labelText = displayLabels && displayLabels.length === labels.length ? displayLabels : labels;
+
+    // Re-verify w based on actual pitch used?
+    // Actually the logic above uses preferredPitch to set w, then fits bars into w. 
+    // Let's stick to w being set by preferredPitch.
 
     const yearGroups = [];
     for (let i = 0; i < labels.length; i++) {
@@ -707,14 +716,16 @@
     const yearBg = yearGroups.length > 1
       ? yearGroups
         .map((g, idx) => {
-          const x0 = padL + g.start * pitch - 2;
-          const x1 = padL + (g.end + 1) * pitch;
+          // Use calculated pitch from plotW
+          const actualPitch = plotW / labelCount;
+          const x0 = padL + g.start * actualPitch - 2;
+          const x1 = padL + (g.end + 1) * actualPitch;
           const width = Math.max(0, x1 - x0);
           const fill = idx % 2 === 0 ? "var(--surface-alt)" : "transparent";
           const labelX = Math.max(padL, x0 + 6);
           return `
-            <rect x="${x0}" y="${padT - 10}" width="${width}" height="${h - padT - 6}" rx="10" fill="${fill}"></rect>
-            <text x="${labelX}" y="${padT - 2}" font-size="${isMobile ? 12 : 14}" fill="var(--text-muted)" font-weight="600">${g.year}</text>
+            <rect x="${x0}" y="${padT - 18}" width="${width}" height="${h - padT - 6}" rx="10" fill="${fill}"></rect>
+            <text x="${labelX}" y="${padT - 6}" font-size="${isMobile ? 12 : 14}" fill="var(--text-muted)" font-weight="600">${g.year}</text>
           `;
         })
         .join("")
@@ -734,7 +745,9 @@
 
     const bars = values
       .map((v, i) => {
-        const x = padL + i * pitch;
+        const actualPitch = plotW / labelCount;
+        const cx = padL + i * actualPitch + actualPitch / 2;
+        const x = cx - barW / 2;
         const bh = Math.round((plotH * v) / max);
         const y = padT + plotH - bh;
         const title = `${monthName(labels[i])}: ${formatY ? formatY(v) : formatNumber(v)}`;
@@ -750,12 +763,18 @@
         ? 2
         : Math.ceil(labelText.length / (isMobile ? 8 : 10));
     const ticks = labelText
-      .map((l, i) => (i % step === 0 ? `<text x="${padL + i * pitch + barW / 2}" y="${h - 6}" text-anchor="middle" font-size="${isMobile ? 11 : 13}" fill="var(--text-sub)">${l}</text>` : ""))
+      .map((l, i) => {
+        if (i % step !== 0) return "";
+        const actualPitch = plotW / labelCount;
+        const cx = padL + i * actualPitch + actualPitch / 2;
+        return `<text x="${cx}" y="${h - 6}" text-anchor="middle" font-size="${isMobile ? 11 : 13}" fill="var(--text-sub)">${l}</text>`;
+      })
       .join("");
-    const scrollable = labelCount > (isMobile ? 30 : 42);
+
+    // Determine SVG width style: fixed pixel width if scrolling, else 100%
     const svgWidthStyle = scrollable ? `${w}px` : "100%";
     const svg = `
-      <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none" style="width:${svgWidthStyle};height:${h}px;display:block">
+      <svg viewBox="0 0 ${w} ${h}" class="svg" style="width:${svgWidthStyle};display:block">
         <rect x="0" y="0" width="${w}" height="${h}" rx="12" fill="transparent"></rect>
         ${yearBg}
         ${yTicks}
@@ -1071,7 +1090,7 @@
       return `<text x="${x}" y="${h - 6}" text-anchor="middle" font-size="14" fill="#64748b">${label}</text>`;
     }).join("");
     return `
-      <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none">
+      <svg viewBox="0 0 ${w} ${h}" class="svg">
         <rect x="0" y="0" width="${w}" height="${h}" rx="12" fill="#ffffff" stroke="#e2e8f0"></rect>
         ${bars}
         ${ticks}
@@ -1219,17 +1238,22 @@
   function svgProbWhiskerChart(rows, currentHour) {
     const viewportWidth = Math.max(320, window.innerWidth || 0);
     const isMobile = viewportWidth <= 900;
-    const w = isMobile ? 620 : 900;
-    const h = isMobile ? 180 : 220;
+    const h = isMobile ? 240 : 250;
     const padL = isMobile ? 44 : 56;
     const padR = isMobile ? 10 : 18;
     const padT = isMobile ? 14 : 16;
     const padB = isMobile ? 28 : 34;
+
+    // Calculate width based on pitch to ensure readability, allow scrolling
+    const pitch = isMobile ? 32 : 38;
+    const w = padL + padR + 24 * pitch;
+    const availableWidth = viewportWidth - (isMobile ? 32 : 64);
+    const scrollable = w > availableWidth;
+
     const plotW = w - padL - padR;
     const plotH = h - padT - padB;
-    const gap = isMobile ? 3 : 2;
-    const barW = Math.max(4, Math.min(isMobile ? 10 : 18, (plotW - gap * 23) / 24));
-    const pitch = barW + gap;
+    const gap = isMobile ? 4 : 4;
+    const barW = pitch - gap;
 
     const y = (p) => padT + plotH - plotH * Math.min(1, Math.max(0, +p || 0));
 
@@ -1286,15 +1310,16 @@
       return `<text x="${x0}" y="${h - 8}" text-anchor="middle" font-size="${isMobile ? 10 : 12}" fill="var(--text-sub)">${label}</text>`;
     }).join("");
 
+    const svgWidthStyle = scrollable ? `${w}px` : "100%";
     const svg = `
-      <svg viewBox="0 0 ${w} ${h}" class="svg" preserveAspectRatio="none" style="width:100%;height:${h}px;display:block">
+      <svg viewBox="0 0 ${w} ${h}" class="svg" style="width:${svgWidthStyle};display:block">
         ${yTicks}
         ${bars}
         ${xTicks}
       </svg>
     `;
     const wrap = document.createElement("div");
-    wrap.className = "chart-container";
+    wrap.className = `chart-container${scrollable ? " chart-container--scrollable" : ""}`;
     wrap.innerHTML = svg;
     return wrap;
   }
