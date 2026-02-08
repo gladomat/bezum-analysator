@@ -1,4 +1,4 @@
-# tg-checkstats (bezum-analysator) 🚋📊
+# Analyse der Beförderungsentgeltzahlungsumgehungsmaßnahmen in Leipzig 🚋📊
 
 A small CLI + web dashboard that helps you turn raw Telegram chatter into useful check-pattern insights:
 
