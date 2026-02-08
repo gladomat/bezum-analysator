@@ -1254,10 +1254,12 @@
     const plotH = h - padT - padB;
     const gap = isMobile ? 4 : 4;
     const barW = pitch - gap;
+    const yMax = 0.5;
+    const clampProb = (p) => Math.min(yMax, Math.max(0, +p || 0));
 
-    const y = (p) => padT + plotH - plotH * Math.min(1, Math.max(0, +p || 0));
+    const y = (p) => padT + plotH - plotH * (clampProb(p) / yMax);
 
-    const yTicks = [0, 0.25, 0.5, 0.75, 1].map((v) => {
+    const yTicks = [0, 0.1, 0.2, 0.3, 0.4, 0.5].map((v) => {
       const yy = y(v);
       const label = `${Math.round(v * 100)}%`;
       return `
@@ -1273,7 +1275,7 @@
       const hi = r.prob_high;
       const x0 = padL + hour * pitch;
       const isNow = currentHour != null && hour === +currentHour;
-      const bh = Math.round(plotH * (mean == null ? 0 : Math.min(1, Math.max(0, +mean))));
+      const bh = Math.round(plotH * (mean == null ? 0 : (clampProb(mean) / yMax)));
       const yy = padT + plotH - bh;
       const title = [
         `${String(hour).padStart(2, "0")}:00`,
