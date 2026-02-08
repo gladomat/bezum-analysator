@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Mapping, Tuple
 
 from tg_checkstats.io import write_csv
+from tg_checkstats.line_universe import BUS_LINES, REGIONALBUS_LINES, TRAM_LINES
 
 
 def write_ui_artifacts(
@@ -23,6 +24,7 @@ def write_ui_artifacts(
     daily_rows: List[Mapping[str, object]],
     month_rows: List[Mapping[str, object]],
     day_hour_counts: Dict[Tuple[date, int], Tuple[int, int]],
+    events: List[Mapping[str, object]] | None = None,
 ) -> None:
     """Write all required UI artifacts under `<run_dir>/derived/ui/`.
 
@@ -106,6 +108,15 @@ def write_ui_artifacts(
             "mean_events_per_weekday_in_range",
         ],
     )
+
+    # Write pre-computed top lines if events are provided
+    if events is not None:
+        top_lines_rows = build_top_lines_rows(events)
+        write_csv(
+            ui_dir / "top_lines.csv",
+            top_lines_rows,
+            ["mode", "line_id", "check_event_count"],
+        )
 
 
 def weekday_label(idx: int) -> str:
@@ -249,3 +260,45 @@ def build_month_weekday_stats_rows(day_rows: List[Mapping[str, object]]) -> List
         )
 
     return out
+
+
+def _line_sort_key(line_id: str) -> tuple:
+    """Return a stable sort key for numeric-first line IDs."""
+    try:
+        return (0, int(line_id), line_id)
+    except ValueError:
+        return (1, 0, line_id)
+
+
+def build_top_lines_rows(events: List[Mapping[str, object]]) -> List[dict]:
+    """Build top lines rows aggregated by mode and line_id.
+
+    This replicates the logic from `web_ui._compute_top_lines_by_mode` so the
+    result can be served without reading `events.csv` at runtime.
+    """
+    by_mode_line: Dict[Tuple[str, str], int] = {}
+    for event in events:
+        mode = str(event.get("mode_guess") or "").strip().lower()
+        line_id = str(event.get("line_id") or "").strip().upper()
+        if not line_id or mode not in {"tram", "bus"}:
+            continue
+        weight = int(event.get("event_weight") or 1)
+        by_mode_line[(mode, line_id)] = by_mode_line.get((mode, line_id), 0) + max(1, weight)
+
+    tram_universe = sorted(TRAM_LINES, key=_line_sort_key)
+    bus_universe = sorted(BUS_LINES | REGIONALBUS_LINES, key=_line_sort_key)
+
+    rows: List[dict] = []
+    for mode, universe in (("tram", tram_universe), ("bus", bus_universe)):
+        mode_rows = [
+            {
+                "mode": mode,
+                "line_id": line_id,
+                "check_event_count": int(by_mode_line.get((mode, line_id), 0)),
+            }
+            for line_id in universe
+        ]
+        mode_rows.sort(key=lambda r: (-int(r["check_event_count"]), _line_sort_key(str(r["line_id"]))))
+        rows.extend(mode_rows)
+
+    return rows

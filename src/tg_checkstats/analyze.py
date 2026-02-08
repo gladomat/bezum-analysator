@@ -344,6 +344,7 @@ def analyze_export(
         daily_rows=daily_rows,
         month_rows=month_rows,
         day_hour_counts=day_hour_counts,
+        events=events,
     )
 
     completed_utc = datetime.now(timezone.utc)

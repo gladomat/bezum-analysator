@@ -462,7 +462,23 @@ class UiArtifacts:
         return out
 
     def _compute_top_lines_by_mode(self) -> dict[str, list[dict]]:
-        """Aggregate event counts by `(mode_guess, line_id)` from events.csv."""
+        """Load top lines by mode from pre-computed CSV or fallback to events.csv."""
+        # Prefer pre-computed top_lines.csv (written by ui_artifacts)
+        top_lines_path = self.ui_dir / "top_lines.csv"
+        if top_lines_path.exists():
+            rows = _read_csv(top_lines_path)
+            out: dict[str, list[dict]] = {"tram": [], "bus": []}
+            for row in rows:
+                mode = str(row.get("mode") or "").strip().lower()
+                if mode not in {"tram", "bus"}:
+                    continue
+                out[mode].append({
+                    "line_id": str(row.get("line_id") or "").strip().upper(),
+                    "check_event_count": _parse_int(row.get("check_event_count")),
+                })
+            return out
+
+        # Fallback: compute from events.csv for backwards compatibility
         events_path = self.run_dir / "derived" / "events.csv"
         by_mode_line: dict[tuple[str, str], int] = {}
         if events_path.exists():
