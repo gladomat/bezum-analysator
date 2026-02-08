@@ -1306,7 +1306,9 @@
       `;
     }).join("");
 
-    const xTicks = Array.from({ length: 24 }, (_, hr) => hr).filter((hr) => hr % 2 === 0 || hr === 23).map((hr) => {
+    const xTicks = Array.from({ length: 24 }, (_, hr) => hr)
+      .filter((hr) => hr >= 6 && hr <= 22 && hr % 2 === 0)
+      .map((hr) => {
       const x0 = padL + hr * pitch + barW / 2;
       const label = String(hr).padStart(2, "0");
       return `<text x="${x0}" y="${h - 8}" text-anchor="middle" font-size="${isMobile ? 10 : 12}" fill="var(--text-sub)">${label}</text>`;
