@@ -1254,12 +1254,12 @@
     const plotH = h - padT - padB;
     const gap = isMobile ? 4 : 4;
     const barW = pitch - gap;
-    const yMax = 0.5;
+    const yMax = 0.33;
     const clampProb = (p) => Math.min(yMax, Math.max(0, +p || 0));
 
     const y = (p) => padT + plotH - plotH * (clampProb(p) / yMax);
 
-    const yTicks = [0, 0.1, 0.2, 0.3, 0.4, 0.5].map((v) => {
+    const yTicks = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.33].map((v) => {
       const yy = y(v);
       const label = `${Math.round(v * 100)}%`;
       return `
