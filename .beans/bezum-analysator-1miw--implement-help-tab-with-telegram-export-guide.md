@@ -1,10 +1,11 @@
 ---
 # bezum-analysator-1miw
 title: Implement Help tab with Telegram export guide
-status: in-progress
+status: completed
 type: feature
+priority: normal
 created_at: 2026-02-08T10:47:12Z
-updated_at: 2026-02-08T10:47:12Z
+updated_at: 2026-02-08T10:50:45Z
 ---
 
 Add a Help tab to the web UI and include practical instructions for obtaining Telegram chat export files that can be uploaded.
