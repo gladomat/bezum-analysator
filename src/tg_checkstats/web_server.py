@@ -61,7 +61,9 @@ def create_app(*, run_dir: Path) -> Callable:
 
     def app(environ, start_response):
         path = environ.get("PATH_INFO", "/") or "/"
-        if path.startswith("/api/"):
+        if path == "/healthz":
+            status, headers, body = plain_text_response("ok\n")
+        elif path.startswith("/api/"):
             status, headers, body = handle_api(state=state, path=path, environ=environ)
         elif path.startswith("/assets/"):
             rel = path.removeprefix("/assets/")
@@ -279,6 +281,17 @@ def json_response(payload: object, *, status: str = "200 OK") -> tuple[str, list
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     headers = [
         ("Content-Type", "application/json; charset=utf-8"),
+        ("Cache-Control", "no-store"),
+        ("Content-Length", str(len(body))),
+    ]
+    return status, headers, body
+
+
+def plain_text_response(payload: str, *, status: str = "200 OK") -> tuple[str, list[tuple[str, str]], bytes]:
+    """Return a UTF-8 plain-text WSGI response."""
+    body = payload.encode("utf-8")
+    headers = [
+        ("Content-Type", "text/plain; charset=utf-8"),
         ("Cache-Control", "no-store"),
         ("Content-Length", str(len(body))),
     ]

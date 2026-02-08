@@ -3,7 +3,7 @@ services:
     name: tg-checkstats
     runtime: python
     plan: free
-    healthCheckPath: /api/run
+    healthCheckPath: /healthz
     buildCommand: pip install -r requirements-render.txt && pip install -e . --no-deps
     startCommand: gunicorn tg_checkstats.wsgi:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
     envVars:

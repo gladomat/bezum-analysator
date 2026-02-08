@@ -49,6 +49,51 @@ def _call_wsgi_app(
     return captured.get("status", "000 Unknown"), payload
 
 
+def _call_wsgi_app_with_headers(
+    app: Callable,
+    *,
+    method: str,
+    path: str,
+    body: bytes = b"",
+    content_type: str = "",
+    query_string: str = "",
+) -> tuple[str, dict[str, str], bytes]:
+    """Call a WSGI app and return (status, headers, body_bytes)."""
+    headers: dict[str, str] = {}
+    captured: dict[str, Any] = {}
+
+    def start_response(status: str, hdrs: list[tuple[str, str]]) -> None:
+        captured["status"] = status
+        for k, v in hdrs:
+            headers[k.lower()] = v
+
+    environ: dict[str, Any] = {
+        "REQUEST_METHOD": method,
+        "PATH_INFO": path,
+        "QUERY_STRING": query_string or "",
+        "wsgi.input": BytesIO(body),
+        "CONTENT_LENGTH": str(len(body)),
+    }
+    if content_type:
+        environ["CONTENT_TYPE"] = content_type
+
+    chunks = app(environ, start_response)
+    payload = b"".join(chunks)
+    return captured.get("status", "000 Unknown"), headers, payload
+
+
+def test_healthz_returns_plain_text_ok(tmp_path: Path) -> None:
+    """`/healthz` returns a tiny liveness response independent of artifacts."""
+    run_dir = tmp_path / "run"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    app = create_app(run_dir=run_dir)
+
+    status, headers, body = _call_wsgi_app_with_headers(app, method="GET", path="/healthz")
+    assert status.startswith("200")
+    assert headers["content-type"] == "text/plain; charset=utf-8"
+    assert body == b"ok\n"
+
+
 def test_upload_creates_new_run_and_switches_active_run(tmp_path: Path) -> None:
     """Uploading a new export analyzes it and changes the server's active run."""
     runs_dir = tmp_path / "runs"
