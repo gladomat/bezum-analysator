@@ -857,7 +857,8 @@ a {
     /* Space for scrollbar */
   }
 
-  .heatmap__head {
+  .heatmap__head,
+  .heatmap__corner {
     display: none;
   }
 

@@ -672,7 +672,7 @@
       `;
   }
 
-  function svgBarChart({ labels, displayLabels, values, onClick, formatY }) {
+  function svgBarChart({ labels, displayLabels, values, onClick, formatY, forceAllTicks }) {
     const viewportWidth = Math.max(320, window.innerWidth || 0);
     const isMobile = viewportWidth <= 900;
     const h = isMobile ? 220 : 250; // Increased height for better aspect ratio
@@ -757,11 +757,13 @@
         </g>`;
       })
       .join("");
-    const step = labelText.length <= (isMobile ? 8 : 12)
+    const step = forceAllTicks
       ? 1
-      : labelText.length <= (isMobile ? 16 : 24)
-        ? 2
-        : Math.ceil(labelText.length / (isMobile ? 8 : 10));
+      : labelText.length <= (isMobile ? 8 : 12)
+        ? 1
+        : labelText.length <= (isMobile ? 16 : 24)
+          ? 2
+          : Math.ceil(labelText.length / (isMobile ? 8 : 10));
     const ticks = labelText
       .map((l, i) => {
         if (i % step !== 0) return "";
@@ -818,6 +820,7 @@
         displayLabels: labels,
         values,
         formatY: (v) => formatInt(Math.round(v)),
+        forceAllTicks: true,
       })
     );
     return section;
@@ -1001,7 +1004,7 @@
     });
 
     const heat = card.querySelector("#heat");
-    heat.innerHTML = `<div></div>` + weekdayHeadLabels().map((d) => `<div class="heatmap__head">${d}</div>`).join("");
+    heat.innerHTML = `<div class="heatmap__corner"></div>` + weekdayHeadLabels().map((d) => `<div class="heatmap__head">${d}</div>`).join("");
 
     payload.weeks.forEach((w) => {
       const weekLabel = document.createElement("div");
