@@ -18,6 +18,7 @@
       nav_month: "Monat",
       nav_week: "Woche",
       nav_predict: "Prognose",
+      nav_help: "Hilfe",
       hint_title: "Lokale UI",
       hint_text: "Lokal, kann Exporte hochladen und neue Runs analysieren.",
       label_upload: "Upload",
@@ -62,6 +63,32 @@
       predict_hour: "Stunde",
       predict_n: "n={n} Tage",
       predict_no_data: "Zu wenig Daten für diesen Wochentag.",
+      help_title: "Hilfe und Methodik",
+      help_sub: "Erklärung der Ansichten, Wahrscheinlichkeiten und Datenquellen.",
+      help_views_title: "Ansichten",
+      help_views_overview: "Übersicht: Monats-Summen, Tagesraten und Top-Linien.",
+      help_views_month: "Monat: Kalender-Heatmap, Wochentagsmittel und Monats-Top-Linien.",
+      help_views_week: "Woche: 7 Tageskarten mit 24 Stunden-Bins.",
+      help_views_predict: "Prognose: Linienbezogene stündliche Wahrscheinlichkeit P(>=1 Kontrolle).",
+      help_prob_title: "Wahrscheinlichkeiten",
+      help_prob_intro: "Alle Wahrscheinlichkeiten nutzen ein Beta-Bernoulli-Modell mit Jeffreys-Prior (alpha=0.5, beta=0.5).",
+      help_prob_day: "Tagesmodell: Erfolg = mindestens ein erkanntes Check-Event am Tag.",
+      help_prob_hour: "Linienmodell: Erfolg = mindestens ein erkanntes Event in einem (Datum, Stunde)-Bucket.",
+      help_prob_ci: "Whisker zeigen das 95%-Credible-Interval. Breite Intervalle bedeuten geringe Datendichte.",
+      help_upload_title: "Upload und Datenformat",
+      help_upload_how: "Über den Upload-Button eine Export-Datei auswählen. Der Server analysiert sie automatisch und wechselt auf den neuen Run.",
+      help_upload_formats: "Unterstützt: JSON-Array, JSON-Objekt mit messages-Liste, NDJSON (ein JSON-Objekt pro Zeile).",
+      help_upload_fields: "Wichtig pro Nachricht: ID (id/message_id/msg_id), Zeit (date/timestamp/date_utc/time/created_at), Textfelder (text/message/content/body/caption).",
+      help_tg_title: "Telegram-Chats exportieren",
+      help_tg_intro: "Für Uploads brauchst du eine Export-Datei (meist export.json). Empfohlen sind öffentliche Chats über deren Link, z. B. https://t.me/freifahren_leipzig.",
+      help_tg_step1: "1) Nur Export herunterladen:",
+      help_tg_step2: "2) Export direkt analysieren:",
+      help_tg_step3: "3) Alles in einem Schritt (Export + Analyse):",
+      help_tg_step4: "4) Danach lokal/remote UI öffnen und export.json hochladen.",
+      help_tg_note: "Hinweis: Wenn API_ID/API_HASH (oder api_id/api_hash) gesetzt sind, nutzt der Exporter diese automatisch über eine temporäre Konfiguration.",
+      help_tg_upload_note: "Für diese Web-UI reicht meist: export.json in der Hilfeleiste hochladen.",
+      help_limits_title: "Hinweise",
+      help_limits: "Die Statistik basiert auf erkannten Meldungen im Datensatz, nicht auf einer absoluten realen Kontrollrate.",
       weekday_means_title: "Wochentagsmittel",
       weekday_means_sub: "Mittelwert pro Wochentag innerhalb des ausgewählten Monatszeitraums.",
       posterior_section_title: "A-Posteriori-Wahrscheinlichkeit einer Kontrolle",
@@ -96,6 +123,7 @@
       nav_month: "Month",
       nav_week: "Week",
       nav_predict: "Predict",
+      nav_help: "Help",
       hint_title: "Local UI",
       hint_text: "Local UI; can upload exports and analyze new runs.",
       label_upload: "Upload",
@@ -140,6 +168,32 @@
       predict_hour: "Hour",
       predict_n: "n={n} days",
       predict_no_data: "Not enough data for this weekday.",
+      help_title: "Help and Methodology",
+      help_sub: "Explains views, probabilities, and data sources.",
+      help_views_title: "Views",
+      help_views_overview: "Overview: monthly totals, per-day rates, and top lines.",
+      help_views_month: "Month: calendar heatmap, weekday means, and month-level top lines.",
+      help_views_week: "Week: 7 day panels with 24 hourly bins.",
+      help_views_predict: "Predict: line-level hourly probability P(>=1 check).",
+      help_prob_title: "Probabilities",
+      help_prob_intro: "All probabilities use a Beta-Bernoulli model with Jeffreys prior (alpha=0.5, beta=0.5).",
+      help_prob_day: "Day model: success = at least one detected check event on that day.",
+      help_prob_hour: "Line model: success = at least one detected event in a (date, hour) bucket.",
+      help_prob_ci: "Whiskers show the 95% credible interval. Wider intervals mean lower data density.",
+      help_upload_title: "Upload and Data Format",
+      help_upload_how: "Use the Upload button to select an export file. The server analyzes it automatically and switches to the new run.",
+      help_upload_formats: "Supported: JSON array, JSON object with a messages list, NDJSON (one JSON object per line).",
+      help_upload_fields: "Important message fields: ID (id/message_id/msg_id), timestamp (date/timestamp/date_utc/time/created_at), text (text/message/content/body/caption).",
+      help_tg_title: "Getting Telegram Chat Exports",
+      help_tg_intro: "To upload data, you need an export file (usually export.json). Public chats via link are the easiest input, e.g. https://t.me/freifahren_leipzig.",
+      help_tg_step1: "1) Download only the export:",
+      help_tg_step2: "2) Analyze an existing export:",
+      help_tg_step3: "3) Do both in one command (export + analyze):",
+      help_tg_step4: "4) Open local/remote UI and upload export.json.",
+      help_tg_note: "Note: if API_ID/API_HASH (or api_id/api_hash) are set, the exporter uses them automatically via a temporary config.",
+      help_tg_upload_note: "For this web UI, uploading export.json from the upload control is usually enough.",
+      help_limits_title: "Notes",
+      help_limits: "Statistics reflect detected reports in this dataset, not an absolute real-world inspection rate.",
       weekday_means_title: "Weekday Means",
       weekday_means_sub: "Mean per weekday within the selected month range.",
       posterior_section_title: "Posterior probability of being checked",
@@ -1066,6 +1120,7 @@
     if (w) return { route: "week", week: w[1] };
     if (path === "/week") return { route: "week", week: null };
     if (path === "/predict") return { route: "predict" };
+    if (path === "/help") return { route: "help" };
     return { route: "overview" };
   }
 
@@ -1132,6 +1187,7 @@
       return renderWeek(payload);
     }
     if (route === "predict") return renderPredict();
+    if (route === "help") return renderHelp();
     return renderOverview();
   }
 
@@ -1313,6 +1369,68 @@
     $("content").innerHTML = "";
     $("content").appendChild(card);
     await load(mode, line);
+  }
+
+  function renderHelp() {
+    setActiveNav("help");
+    setCrumbs([{ text: state.run.run_id, bold: false }, { text: t("nav_help"), bold: true }]);
+    setMetaPill(`${t("meta_loaded")} • ${t("nav_help")}`);
+
+    const card = document.createElement("div");
+    card.className = "card help-card";
+    card.innerHTML = `
+      <div class="card__title">${t("help_title")}</div>
+      <div class="card__sub">${t("help_sub")}</div>
+      <div class="help-grid">
+        <section class="help-section">
+          <h3>${t("help_views_title")}</h3>
+          <ul class="help-list">
+            <li>${t("help_views_overview")}</li>
+            <li>${t("help_views_month")}</li>
+            <li>${t("help_views_week")}</li>
+            <li>${t("help_views_predict")}</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>${t("help_prob_title")}</h3>
+          <ul class="help-list">
+            <li>${t("help_prob_intro")}</li>
+            <li>${t("help_prob_day")}</li>
+            <li>${t("help_prob_hour")}</li>
+            <li>${t("help_prob_ci")}</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>${t("help_upload_title")}</h3>
+          <ul class="help-list">
+            <li>${t("help_upload_how")}</li>
+            <li>${t("help_upload_formats")}</li>
+            <li>${t("help_upload_fields")}</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>${t("help_tg_title")}</h3>
+          <p>${t("help_tg_intro")}</p>
+          <p><strong>${t("help_tg_step1")}</strong></p>
+          <pre class="help-code"><code>tg-checkstats export --chat &lt;chat&gt; --out runs/&lt;run&gt;</code></pre>
+          <p><strong>${t("help_tg_step2")}</strong></p>
+          <pre class="help-code"><code>tg-checkstats analyze --input runs/&lt;run&gt;/raw/export.json --out runs/&lt;run&gt;</code></pre>
+          <p><strong>${t("help_tg_step3")}</strong></p>
+          <pre class="help-code"><code>tg-checkstats run --chat &lt;chat&gt; --out runs/&lt;run&gt;</code></pre>
+          <p><strong>${t("help_tg_step4")}</strong></p>
+          <pre class="help-code"><code>scripts/tg_checkstats_run.sh https://t.me/freifahren_leipzig</code></pre>
+          <p>${t("help_tg_upload_note")}</p>
+          <p class="help-note">${t("help_tg_note")}</p>
+        </section>
+        <section class="help-section">
+          <h3>${t("help_limits_title")}</h3>
+          <p>${t("help_limits")}</p>
+        </section>
+      </div>
+    `;
+
+    $("content").innerHTML = "";
+    $("content").appendChild(card);
   }
 
   async function init() {
