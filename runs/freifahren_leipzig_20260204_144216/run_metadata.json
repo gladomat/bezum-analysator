@@ -11,7 +11,7 @@
   "commands": {
     "telegram_download_chat_argv": null,
     "tg_checkstats_argv": [
-      "/Users/glad/.cache/uv/builds-v0/.tmpIz7i4A/bin/tg-checkstats",
+      "/Users/glad/src/github.com/bezum-analysator/.venv/bin/tg-checkstats",
       "analyze",
       "--input",
       "runs/freifahren_leipzig_20260204_144216/raw/export.json",
@@ -74,8 +74,8 @@
     "raw_export_sha256": "bddb23b5d0924a788b124a8d3dbb05a60d9a22fd67da6dc0f8e1fa66fb93b61b"
   },
   "timestamps": {
-    "analyze_completed_utc": "2026-02-05T21:08:29.247844Z",
-    "analyze_started_utc": "2026-02-05T21:08:26.694868Z"
+    "analyze_completed_utc": "2026-02-08T10:42:30.421473Z",
+    "analyze_started_utc": "2026-02-08T10:42:27.655428Z"
   },
   "tool_versions": {
     "analyzer": "0.1.0",

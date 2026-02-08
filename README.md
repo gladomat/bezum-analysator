@@ -66,6 +66,8 @@ The service uses:
 - Build: installs `requirements-render.txt` and installs the package (`pip install -e . --no-deps`)
 - Start: `gunicorn tg_checkstats.wsgi:app --bind 0.0.0.0:$PORT ...`
 
+On the Free plan, the service starts with an empty run directory; you’ll see a “No Data Artifacts Found” screen until you upload an export.
+
 ### Data persistence (uploads)
 
 Uploaded exports + derived artifacts are written under the `TG_CHECKSTATS_RUN_DIR` parent directory.
