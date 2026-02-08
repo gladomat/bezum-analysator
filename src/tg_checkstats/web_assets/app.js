@@ -1244,9 +1244,13 @@
     const padT = isMobile ? 14 : 16;
     const padB = isMobile ? 28 : 34;
 
-    // Calculate width based on pitch to ensure readability, allow scrolling
+    // Calculate width based on pitch to ensure readability, allow scrolling.
+    // We only show 06:00 to 22:00 (17 hours).
+    const startHour = 6;
+    const endHour = 22;
+    const numHours = endHour - startHour + 1;
     const pitch = isMobile ? 32 : 38;
-    const w = padL + padR + 24 * pitch;
+    const w = padL + padR + numHours * pitch;
     const availableWidth = viewportWidth - (isMobile ? 32 : 64);
     const scrollable = w > availableWidth;
 
@@ -1254,12 +1258,12 @@
     const plotH = h - padT - padB;
     const gap = isMobile ? 4 : 4;
     const barW = pitch - gap;
-    const yMax = 0.33;
+    const yMax = 0.25;
     const clampProb = (p) => Math.min(yMax, Math.max(0, +p || 0));
 
     const y = (p) => padT + plotH - plotH * (clampProb(p) / yMax);
 
-    const yTicks = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.33].map((v) => {
+    const yTicks = [0, 0.05, 0.1, 0.15, 0.2, 0.25].map((v) => {
       const yy = y(v);
       const label = `${Math.round(v * 100)}%`;
       return `
@@ -1268,51 +1272,57 @@
       `;
     }).join("");
 
-    const bars = (rows || []).map((r) => {
-      const hour = +r.hour || 0;
-      const mean = r.prob_mean;
-      const lo = r.prob_low;
-      const hi = r.prob_high;
-      const x0 = padL + hour * pitch;
-      const isNow = currentHour != null && hour === +currentHour;
-      const bh = Math.round(plotH * (mean == null ? 0 : (clampProb(mean) / yMax)));
-      const yy = padT + plotH - bh;
-      const title = [
-        `${String(hour).padStart(2, "0")}:00`,
-        `P ${formatPct(mean)}`,
-        `95% [${formatPct(lo)}, ${formatPct(hi)}]`,
-        `trials=${r.trials} successes=${r.successes}`,
-      ].join("\n");
+    const bars = (rows || [])
+      .filter((r) => {
+        const h = +r.hour || 0;
+        return h >= startHour && h <= endHour;
+      })
+      .map((r) => {
+        const hour = +r.hour || 0;
+        const mean = r.prob_mean;
+        const lo = r.prob_low;
+        const hi = r.prob_high;
+        // Shift x based on startHour
+        const x0 = padL + (hour - startHour) * pitch;
+        const isNow = currentHour != null && hour === +currentHour;
+        const bh = Math.round(plotH * (mean == null ? 0 : (clampProb(mean) / yMax)));
+        const yy = padT + plotH - bh;
+        const title = [
+          `${String(hour).padStart(2, "0")}:00`,
+          `P ${formatPct(mean)}`,
+          `95% [${formatPct(lo)}, ${formatPct(hi)}]`,
+          `trials=${r.trials} successes=${r.successes}`,
+        ].join("\n");
 
-      const whisker = (lo == null || hi == null)
-        ? ""
-        : (() => {
-          const yLo = y(lo);
-          const yHi = y(hi);
-          const cx = x0 + barW / 2;
-          return `
+        const whisker = (lo == null || hi == null)
+          ? ""
+          : (() => {
+            const yLo = y(lo);
+            const yHi = y(hi);
+            const cx = x0 + barW / 2;
+            return `
             <line x1="${cx}" y1="${yHi}" x2="${cx}" y2="${yLo}" stroke="var(--text-main)" stroke-width="1.5" opacity="0.8"></line>
             <line x1="${cx - 6}" y1="${yHi}" x2="${cx + 6}" y2="${yHi}" stroke="var(--text-main)" stroke-width="1.5" opacity="0.8"></line>
             <line x1="${cx - 6}" y1="${yLo}" x2="${cx + 6}" y2="${yLo}" stroke="var(--text-main)" stroke-width="1.5" opacity="0.8"></line>
           `;
-        })();
+          })();
 
-      return `
+        return `
         <g class="bar">
           <title>${title}</title>
           <rect x="${x0}" y="${yy}" width="${barW}" height="${bh}" rx="4" fill="${isNow ? "var(--primary-hover)" : "var(--primary)"}" stroke="${isNow ? "var(--text-main)" : "transparent"}" stroke-width="${isNow ? 1.5 : 0}"></rect>
           ${whisker}
         </g>
       `;
-    }).join("");
+      }).join("");
 
     const xTicks = Array.from({ length: 24 }, (_, hr) => hr)
-      .filter((hr) => hr >= 6 && hr <= 22 && hr % 2 === 0)
+      .filter((hr) => hr >= startHour && hr <= endHour && hr % 2 === 0)
       .map((hr) => {
-      const x0 = padL + hr * pitch + barW / 2;
-      const label = String(hr).padStart(2, "0");
-      return `<text x="${x0}" y="${h - 8}" text-anchor="middle" font-size="${isMobile ? 10 : 12}" fill="var(--text-sub)">${label}</text>`;
-    }).join("");
+        const x0 = padL + (hr - startHour) * pitch + barW / 2;
+        const label = String(hr).padStart(2, "0");
+        return `<text x="${x0}" y="${h - 8}" text-anchor="middle" font-size="${isMobile ? 10 : 12}" fill="var(--text-sub)">${label}</text>`;
+      }).join("");
 
     const svgWidthStyle = scrollable ? `${w}px` : "100%";
     const svg = `
