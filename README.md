@@ -1,6 +1,6 @@
-# tg-checkstats (bezum-analysator)
+# tg-checkstats (bezum-analysator) 🚋📊
 
-A small CLI + web dashboard to:
+A small CLI + web dashboard that helps you turn raw Telegram chatter into useful check-pattern insights:
 
 1. download a Telegram chat/channel history (via `telegram-download-chat`)
 2. detect “check events” in messages (e.g. *Kontrolle*, *Kontis*, “3k”, “3–5k”)
@@ -9,13 +9,13 @@ A small CLI + web dashboard to:
 
 The intended use-case is transit “ticket inspection” reports (German: *Kontrolle*)
 posted into a Telegram channel/group (example chat: `https://t.me/freifahren_leipzig`),
-but you can point it at any chat whose messages contain your signal words.
+but you can point it at any chat whose messages contain your signal words. Think of it as: collect, detect, aggregate, visualize.
 
 ---
 
-## Quickstart
+## Quickstart 🚀
 
-### 0) Requirements
+### 0) Requirements ✅
 
 - Python 3.10+
 - A Telegram account (for exporting via API)
@@ -23,7 +23,7 @@ but you can point it at any chat whose messages contain your signal words.
 This repo intentionally **does not** bundle the exporter. Exporting is delegated to
 the external CLI `telegram-download-chat`.
 
-### 1) Install
+### 1) Install 🛠️
 
 Using `uv` (recommended):
 
@@ -43,7 +43,7 @@ python -m venv .venv
 ./.venv/bin/pip install telegram-download-chat
 ```
 
-### 2) Configure Telegram API credentials (api_id + api_hash)
+### 2) Configure Telegram API credentials (api_id + api_hash) 🔐
 
 `telegram-download-chat` uses Telegram’s MTProto API. To use it you need an **API ID**
 and **API hash** linked to your Telegram account.
@@ -70,7 +70,7 @@ Notes:
 - The exporter config is written to a **temporary file** and deleted after the export.
 - Don’t commit `.env`. Treat `API_HASH` like a password.
 
-### 3) Export + analyze
+### 3) Export + analyze 📥➡️📈
 
 Run everything end-to-end into a “run directory”:
 
@@ -90,7 +90,7 @@ uv run tg-checkstats export --chat https://t.me/freifahren_leipzig --out runs/fr
 uv run tg-checkstats analyze --input runs/freifahren_leipzig/raw/export.json --out runs/freifahren_leipzig
 ```
 
-### 4) Open the dashboard (local)
+### 4) Open the dashboard (local) 🌐
 
 ```bash
 uv run tg-checkstats serve --run runs/freifahren_leipzig --host 127.0.0.1 --port 8000
@@ -100,7 +100,7 @@ Open `http://127.0.0.1:8000/`.
 
 ---
 
-## Downloading chats from Telegram channels (how it works)
+## Downloading chats from Telegram channels (how it works) 📡
 
 This project does not scrape Telegram directly; it shells out to:
 
@@ -126,15 +126,15 @@ About authentication:
   Run the export in a real terminal session (TTY), not a background job.
 - You must have access to the chat (public, or joined if private).
 
-Already have an export?
+Already have an export? Nice.
 - If you already have a JSON export (array/object/NDJSON), skip export and run `tg-checkstats analyze`.
 - The deployed web UI also supports uploading exports via `POST /api/upload`.
 
 ---
 
-## Analysis: what gets extracted (and how)
+## Analysis: what gets extracted (and how) 🔎
 
-### Inputs supported
+### Inputs supported 📂
 
 The analyzer streams the export file (no need to load everything into RAM) and supports:
 
@@ -145,7 +145,7 @@ The analyzer streams the export file (no need to load everything into RAM) and s
 Timestamps are parsed from ISO strings or epoch seconds and normalized to UTC, then
 bucketed in the **Europe/Berlin** timezone for “day/week/month” calculations.
 
-### Message filtering
+### Message filtering 🧹
 
 Each message is:
 
@@ -158,7 +158,7 @@ Each message is:
 
 (See `tg-checkstats analyze --help` for flags.)
 
-### Event detection (“check events”)
+### Event detection (“check events”) 🎯
 
 Detection is deterministic and regex-based. The current detector looks for:
 
@@ -173,13 +173,13 @@ When an event is detected, the analyzer writes an `events.csv` row with extracte
 - `line_id`, `mode_guess` (tram/bus), `direction_text`, `location_text`, `platform_text`
 - `confidence_score` (a small additive score derived from the signals above)
 
-### Stitching follow-ups (optional)
+### Stitching follow-ups (optional) 🧵
 
 In real chats, “details” sometimes arrive as follow-up messages (e.g. line + direction in a second message).
 When enabled (default), the analyzer will stitch “detail-only” messages from the **same sender**
 into the previous event if they arrive within a small time window (default: 5 minutes).
 
-### Outputs written
+### Outputs written 🗂️
 
 Given `--out runs/<run>`, outputs land in:
 
@@ -191,9 +191,9 @@ Given `--out runs/<run>`, outputs land in:
 
 ---
 
-## Bayesian probabilities (posterior “check chance”)
+## Bayesian probabilities (posterior “check chance”) 🧠
 
-The dashboard shows a **posterior probability** of “a check happening on a day”.
+The dashboard shows a **posterior probability** of “a check happening on a day”, so you get more than just raw counts.
 
 Model:
 - Each **day** is treated as a Bernoulli trial.
@@ -219,9 +219,9 @@ The UI computes these posteriors per:
 
 ---
 
-## Deploying the web UI
+## Deploying the web UI ☁️
 
-### Render (blueprint)
+### Render (blueprint) 🧩
 
 This repo ships a `render.yaml` blueprint that deploys the web UI as a Render Web Service.
 The deployed UI supports uploading Telegram exports (`/api/upload`) and analyzes them server-side.
@@ -234,7 +234,7 @@ Under the hood:
 - Build: installs `requirements-render.txt` and installs the package (`pip install -e . --no-deps`)
 - Start: `gunicorn tg_checkstats.wsgi:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120`
 
-### Configure storage (`TG_CHECKSTATS_RUN_DIR`)
+### Configure storage (`TG_CHECKSTATS_RUN_DIR`) 💾
 
 The web service needs a writable directory for uploads + derived artifacts:
 
@@ -248,7 +248,7 @@ On Render’s Free plan, the filesystem is ephemeral: uploads vanish when the se
 For persistence, use a paid plan + persistent disk and set `TG_CHECKSTATS_RUN_DIR` under the disk mount
 (for example: `/var/data/tg-checkstats/run/current`).
 
-### Deploy elsewhere
+### Deploy elsewhere 🐳
 
 Any PaaS/container environment that can run a WSGI app works:
 
@@ -258,7 +258,7 @@ gunicorn tg_checkstats.wsgi:app --bind 0.0.0.0:$PORT
 
 ---
 
-## Helper script (optional)
+## Helper script (optional) ⚙️
 
 There is also a small wrapper script that:
 
@@ -288,7 +288,7 @@ If you need `API_ID`/`API_HASH` handling, prefer `tg-checkstats export` / `tg-ch
 
 ---
 
-## Troubleshooting
+## Troubleshooting 🩺
 
 - Export fails immediately: check that `telegram-download-chat` is installed and on your `PATH`.
 - Missing UI artifacts: run `tg-checkstats analyze` for the run directory you’re serving.
@@ -297,12 +297,12 @@ If you need `API_ID`/`API_HASH` handling, prefer `tg-checkstats export` / `tg-ch
 
 ---
 
-## Development
+## Development 👩‍💻
 
 ```bash
 uv run pytest
 ```
 
-## License
+## License 📄
 
 MIT (see `LICENSE`).
